@@ -11,7 +11,7 @@ import { formatDate, toIsoDate } from "@lib/date";
 export async function getStaticPaths() {
   const stories = await getPublishedStories();
   return stories.map((story) => ({
-    params: { slug: story.data.slug },
+    params: { slug: story.slug },
     props: { story, stories },
   }));
 }

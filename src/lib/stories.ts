@@ -12,7 +12,7 @@ export async function getPublishedStories() {
 }
 
 export function storyPath(story: Story) {
-  return `/stories/${story.data.slug}/`;
+  return `/stories/${story.slug}/`;
 }
 
 export function categoryPath(slug: string) {

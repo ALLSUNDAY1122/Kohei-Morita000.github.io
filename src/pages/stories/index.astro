@@ -81,7 +81,7 @@ const stories = await getPublishedStories();
     </div>
   </section>
 
-  <script>
+  <script is:inline>
     const form = document.querySelector("[data-story-filter]");
     const cards = Array.from(document.querySelectorAll("[data-story-list] .story-card"));
     const empty = document.querySelector("[data-filter-empty]");

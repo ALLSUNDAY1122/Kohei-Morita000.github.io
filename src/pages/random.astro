@@ -65,8 +65,8 @@ const randomData = stories.map((story) => ({
       <p class="empty-state" data-random-empty hidden>条件に合う作品がありません。</p>
     </div>
   </section>
-  <script type="application/json" id="random-stories" set:html={JSON.stringify(randomData)} />
-  <script>
+  <script is:inline type="application/json" id="random-stories" set:html={JSON.stringify(randomData)} />
+  <script is:inline>
     const stories = JSON.parse(document.getElementById("random-stories")?.textContent || "[]");
     const form = document.querySelector("[data-random-form]");
     const result = document.querySelector("[data-random-result]");

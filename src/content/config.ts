@@ -23,7 +23,6 @@ const stories = defineCollection({
   schema: z.object({
     id: z.string().min(1),
     title: z.string().min(1),
-    slug: z.string().min(1).regex(/^[a-z0-9-]+$/),
     excerpt: z.string().min(20).max(180),
     publishedAt: z.coerce.date(),
     updatedAt: z.coerce.date(),
@@ -45,7 +44,7 @@ const stories = defineCollection({
     aiAssisted: z.boolean().default(false),
     reviewStatus: z.enum(reviewStatuses),
     seoTitle: z.string().min(1).max(70),
-    seoDescription: z.string().min(50).max(160),
+    seoDescription: z.string().min(20).max(160),
   }),
 });
 
