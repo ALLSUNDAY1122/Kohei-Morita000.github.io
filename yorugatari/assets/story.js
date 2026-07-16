@@ -3,7 +3,7 @@ document.documentElement.classList.add('js');
 const readingMinutes = {
   'last-elevator': 8,
   'neighbor-wifi': 8,
-  'kind-manager': 2,
+  'kind-manager': 8,
   'family-photo': 2,
   'three-knocks': 2,
   'read-receipt': 1,
