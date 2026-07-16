@@ -1,0 +1,159 @@
+<script>
+  const FAVORITES_KEY = "kaidan:favorites";
+  const HISTORY_KEY = "kaidan:history";
+  const SETTINGS_KEY = "kaidan-reader-settings";
+
+  function readJson(key, fallback) {
+    try {
+      const value = JSON.parse(localStorage.getItem(key) || "null");
+      return value ?? fallback;
+    } catch {
+      return fallback;
+    }
+  }
+
+  function writeJson(key, value) {
+    localStorage.setItem(key, JSON.stringify(value));
+  }
+
+  function currentStory() {
+    const node = document.querySelector("[data-story-page]");
+    if (!node) return null;
+    return {
+      id: node.dataset.storyId,
+      title: node.dataset.storyTitle,
+      url: node.dataset.storyUrl,
+    };
+  }
+
+  function renderSavedList(selector, items, emptyText, mode) {
+    const target = document.querySelector(selector);
+    if (!target) return;
+    const countTarget = document.querySelector(`[data-${mode}-count]`);
+    if (countTarget) countTarget.textContent = String(items.length);
+    if (items.length === 0) {
+      target.innerHTML = `<p class="empty-state">${emptyText}</p>`;
+      return;
+    }
+    target.innerHTML = `
+      <div class="saved-list">
+        ${items
+          .map(
+            (item) => `
+              <article class="saved-item">
+                <a href="${item.url}">${item.title}</a>
+                <time datetime="${item.savedAt || item.readAt}">${new Date(item.savedAt || item.readAt).toLocaleString("ja-JP")}</time>
+                ${
+                  mode === "favorites"
+                    ? `<button type="button" data-remove-favorite="${item.id}">解除</button>`
+                    : ""
+                }
+              </article>
+            `,
+          )
+          .join("")}
+      </div>
+    `;
+  }
+
+  function updateFavoriteButton() {
+    const story = currentStory();
+    const button = document.querySelector("[data-favorite-toggle]");
+    if (!story || !button) return;
+    const favorites = readJson(FAVORITES_KEY, []);
+    const active = favorites.some((item) => item.id === story.id);
+    button.setAttribute("aria-pressed", String(active));
+    button.textContent = active ? "お気に入り解除" : "お気に入り";
+  }
+
+  function toggleFavorite() {
+    const story = currentStory();
+    if (!story) return;
+    const favorites = readJson(FAVORITES_KEY, []);
+    const exists = favorites.some((item) => item.id === story.id);
+    const next = exists
+      ? favorites.filter((item) => item.id !== story.id)
+      : [{ ...story, savedAt: new Date().toISOString() }, ...favorites];
+    writeJson(FAVORITES_KEY, next);
+    updateFavoriteButton();
+  }
+
+  function saveHistory() {
+    const story = currentStory();
+    if (!story) return;
+    const history = readJson(HISTORY_KEY, []).filter((item) => item.id !== story.id);
+    history.unshift({ ...story, readAt: new Date().toISOString() });
+    writeJson(HISTORY_KEY, history.slice(0, 30));
+  }
+
+  function applyReaderSetting(name, value) {
+    const root = document.documentElement;
+    const settings = readJson(SETTINGS_KEY, {});
+    settings[name] = value;
+    writeJson(SETTINGS_KEY, settings);
+    if (name === "theme") root.dataset.theme = value;
+    if (name === "fontSize") root.style.setProperty("--reader-font-scale", value);
+    if (name === "lineHeight") root.style.setProperty("--reader-line-height", value);
+    if (name === "width") root.style.setProperty("--reader-width", value);
+  }
+
+  function hydrateReaderSettings() {
+    const settings = readJson(SETTINGS_KEY, {});
+    document.querySelectorAll("[data-reader-setting]").forEach((input) => {
+      const name = input.dataset.readerSetting;
+      if (name && settings[name]) input.value = settings[name];
+    });
+  }
+
+  function updateProgress() {
+    const bar = document.querySelector("[data-reading-progress]");
+    const prose = document.querySelector(".prose");
+    if (!bar || !prose) return;
+    const rect = prose.getBoundingClientRect();
+    const total = Math.max(1, rect.height - window.innerHeight * 0.6);
+    const read = Math.min(total, Math.max(0, -rect.top));
+    bar.style.width = `${Math.round((read / total) * 100)}%`;
+  }
+
+  document.addEventListener("click", async (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    if (target.matches("[data-favorite-toggle]")) {
+      toggleFavorite();
+    }
+    const removeId = target.getAttribute("data-remove-favorite");
+    if (removeId) {
+      const favorites = readJson(FAVORITES_KEY, []).filter((item) => item.id !== removeId);
+      writeJson(FAVORITES_KEY, favorites);
+      renderSavedList("[data-favorites-list]", favorites, "お気に入りはまだありません。", "favorites");
+    }
+    if (target.matches("[data-clear-history]")) {
+      writeJson(HISTORY_KEY, []);
+      renderSavedList("[data-history-list]", [], "読書履歴はまだありません。", "history");
+    }
+    const theme = target.getAttribute("data-theme-value");
+    if (theme) applyReaderSetting("theme", theme);
+    const copyUrl = target.getAttribute("data-copy-url");
+    if (copyUrl) {
+      await navigator.clipboard?.writeText(copyUrl);
+      target.textContent = "コピー済み";
+    }
+  });
+
+  document.addEventListener("change", (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    const setting = target.getAttribute("data-reader-setting");
+    if (setting && "value" in target) applyReaderSetting(setting, target.value);
+  });
+
+  window.addEventListener("scroll", updateProgress, { passive: true });
+  window.addEventListener("resize", updateProgress);
+
+  saveHistory();
+  updateFavoriteButton();
+  hydrateReaderSettings();
+  updateProgress();
+  renderSavedList("[data-favorites-list]", readJson(FAVORITES_KEY, []), "お気に入りはまだありません。", "favorites");
+  renderSavedList("[data-history-list]", readJson(HISTORY_KEY, []), "読書履歴はまだありません。", "history");
+</script>

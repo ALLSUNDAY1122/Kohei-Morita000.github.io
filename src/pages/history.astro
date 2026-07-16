@@ -1,0 +1,23 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+import Breadcrumbs from "@components/Breadcrumbs.astro";
+import { collectionJsonLd } from "@lib/seo";
+---
+
+<BaseLayout title="読書履歴" description="この端末で最近読んだ怖い話を最大30件まで表示します。" noindex jsonLd={collectionJsonLd("読書履歴", "/history/", "端末内に保存された読書履歴")}>
+  <Breadcrumbs items={[{ href: "/history/", label: "読書履歴" }]} />
+  <section class="hero">
+    <div class="container">
+      <p class="eyebrow">History</p>
+      <h1>読書履歴</h1>
+      <p>最近読んだ作品を最大30件まで保存します。同じ作品は重複して保存しません。</p>
+      <div class="button-row">
+        <span><strong data-history-count>0</strong>件</span>
+        <button class="ghost-button" type="button" data-clear-history>履歴を全削除</button>
+      </div>
+    </div>
+  </section>
+  <section class="section">
+    <div class="container" data-history-list></div>
+  </section>
+</BaseLayout>
