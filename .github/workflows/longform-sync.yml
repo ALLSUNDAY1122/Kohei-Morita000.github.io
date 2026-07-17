@@ -5,6 +5,7 @@ on:
     paths:
       - 'yorugatitari/editorial/longform/*-publish.json'
       - 'yorugatari/editorial/longform/*-publish.json'
+      - 'yorugatari/editorial/longform/*-patch.json'
 
 permissions:
   contents: write
@@ -31,10 +32,74 @@ jobs:
 
           root = Path('yorugatari')
           config_dir = root / 'editorial' / 'longform'
+          patch_configs = sorted(config_dir.glob('*-patch.json'))
           configs = sorted(config_dir.glob('*-publish.json'))
+
+          for patch_path in patch_configs:
+              patch_data = json.loads(patch_path.read_text(encoding='utf-8'))
+
+              for operation in patch_data.get('operations', []):
+                  target_path = Path(operation['path'])
+                  text = target_path.read_text(encoding='utf-8')
+                  mode = operation.get('mode', 'replace')
+
+                  if mode == 'tail':
+                      marker = operation['start']
+                      if marker not in text:
+                          raise SystemExit(f'patch marker not found: {target_path}: {marker}')
+                      text = text[:text.index(marker)] + operation['replacement'].rstrip() + '\n'
+                  elif mode == 'replace':
+                      old = operation['old']
+                      if text.count(old) != 1:
+                          raise SystemExit(f'patch text count is not one: {target_path}: {old}')
+                      text = text.replace(old, operation['new'], 1)
+                  else:
+                      raise SystemExit(f'unknown patch mode: {mode}')
+
+                  target_path.write_text(text, encoding='utf-8')
+
+              for target in patch_data.get('sync', []):
+                  slug = target['slug']
+                  draft_path = config_dir / target['draft']
+                  story_path = root / 'stories' / f'{slug}.html'
+
+                  lines = draft_path.read_text(encoding='utf-8').splitlines()
+                  paragraphs = []
+                  for line in lines:
+                      text = line.strip()
+                      if not text or text.startswith('# '):
+                          continue
+                      paragraphs.append(f'<p>{html.escape(text, quote=False)}</p>')
+                  article = ''.join(paragraphs)
+
+                  page = story_path.read_text(encoding='utf-8')
+                  page, replacements = re.subn(
+                      r'(<article class="story-body">).*?(<button class="btn" id="explainBtn">)',
+                      lambda match: match.group(1) + article + match.group(2),
+                      page,
+                      count=1,
+                      flags=re.S,
+                  )
+                  if replacements != 1:
+                      page, replacements = re.subn(
+                          r'(<article class="story-body">).*?(<p class="notice">)',
+                          lambda match: match.group(1) + article + match.group(2),
+                          page,
+                          count=1,
+                          flags=re.S,
+                      )
+                  if replacements != 1:
+                      raise SystemExit(f'patched article replacement failed: {story_path}')
+                  story_path.write_text(page, encoding='utf-8')
+
+              patch_path.unlink()
 
           for config_path in configs:
               config = json.loads(config_path.read_text(encoding='utf-8'))
+              if config.get('trigger_only'):
+                  config_path.unlink()
+                  continue
+
               slug = config['slug']
               minutes = int(config['minutes'])
               length = config.get('length', '長編')
@@ -119,8 +184,8 @@ jobs:
 
               config_path.unlink()
 
-          if not configs:
-              print('No publish configurations found.')
+          if not configs and not patch_configs:
+              print('No publish or patch configurations found.')
           PY
 
       - name: Validate generated files
