@@ -8,6 +8,7 @@
 - 構成：起承転結を維持
 - 読了時間：約5分
 - 公開状態：新URLへ反映済み
+- 公開URL：https://allsunday1122.github.io/yorugatari/stories/neighbor-wifi.html
 
 ## 維持した中心要素
 
