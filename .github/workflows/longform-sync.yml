@@ -33,135 +33,8 @@ jobs:
           config_dir = root / 'editorial' / 'longform'
           configs = sorted(config_dir.glob('*-publish.json'))
 
-          stories_path = root / 'assets' / 'stories.js'
-          stories_text = stories_path.read_text(encoding='utf-8')
-          prefix = 'window.STORIES = '
-          if not stories_text.startswith(prefix) or not stories_text.rstrip().endswith(';'):
-              raise SystemExit('stories.js format is unexpected')
-          data = json.loads(stories_text[len(prefix):].rstrip()[:-1])
-          by_slug = {story['slug']: story for story in data}
-          stories_changed = False
-
           for config_path in configs:
               config = json.loads(config_path.read_text(encoding='utf-8'))
-
-              if config.get('catalog_sync'):
-                  related = config['related']
-                  descriptions = config['descriptions']
-                  summaries = config.get('summaries', {})
-
-                  if set(related) != set(by_slug):
-                      raise SystemExit('related mapping must cover every story')
-                  if set(descriptions) != set(by_slug):
-                      raise SystemExit('SEO descriptions must cover every story')
-
-                  incoming = {slug: 0 for slug in by_slug}
-                  for slug, targets in related.items():
-                      if len(targets) != 2 or slug in targets or len(set(targets)) != 2:
-                          raise SystemExit(f'invalid related targets: {slug}')
-                      for target in targets:
-                          if target not in by_slug:
-                              raise SystemExit(f'unknown related target: {target}')
-                          incoming[target] += 1
-                  if any(count != 2 for count in incoming.values()):
-                      raise SystemExit(f'unbalanced related links: {incoming}')
-
-                  for slug, story in by_slug.items():
-                      if slug in summaries:
-                          story['summary'] = summaries[slug]
-                          stories_changed = True
-
-                      story_path = root / 'stories' / f'{slug}.html'
-                      page = story_path.read_text(encoding='utf-8')
-                      title = story['title']
-                      category = story['category']
-                      minutes = int(story['minutes'])
-                      summary = story['summary']
-                      description = descriptions[slug]
-
-                      page, count = re.subn(
-                          r'<meta name="description" content="[^"]*">',
-                          f'<meta name="description" content="{html.escape(description, quote=True)}">',
-                          page,
-                          count=1,
-                      )
-                      if count != 1:
-                          raise SystemExit(f'meta description not found: {story_path}')
-
-                      canonical_match = re.search(r'<link rel="canonical" href="([^"]+)">', page)
-                      if not canonical_match:
-                          raise SystemExit(f'canonical not found: {story_path}')
-                      canonical = canonical_match.group(1)
-
-                      jsonld_match = re.search(
-                          r'<script type="application/ld\+json">(.*?)</script>',
-                          page,
-                          flags=re.S,
-                      )
-                      if not jsonld_match:
-                          raise SystemExit(f'JSON-LD not found: {story_path}')
-                      jsonld = json.loads(jsonld_match.group(1))
-                      jsonld['headline'] = title
-                      jsonld['description'] = description
-                      jsonld['timeRequired'] = f'PT{minutes}M'
-                      jsonld['mainEntityOfPage'] = canonical
-                      encoded_jsonld = json.dumps(jsonld, ensure_ascii=False)
-                      page = page[:jsonld_match.start(1)] + encoded_jsonld + page[jsonld_match.end(1):]
-
-                      social_meta = (
-                          f'<meta property="og:title" content="{html.escape(title + "｜夜語り", quote=True)}">'
-                          f'<meta property="og:description" content="{html.escape(description, quote=True)}">'
-                          '<meta name="twitter:card" content="summary">'
-                          f'<meta name="twitter:title" content="{html.escape(title + "｜夜語り", quote=True)}">'
-                          f'<meta name="twitter:description" content="{html.escape(description, quote=True)}">'
-                      )
-                      page = re.sub(r'<meta property="og:title" content="[^"]*">', '', page)
-                      page = re.sub(r'<meta property="og:description" content="[^"]*">', '', page)
-                      page = re.sub(r'<meta name="twitter:card" content="[^"]*">', '', page)
-                      page = re.sub(r'<meta name="twitter:title" content="[^"]*">', '', page)
-                      page = re.sub(r'<meta name="twitter:description" content="[^"]*">', '', page)
-                      marker = '<meta property="og:site_name" content="夜語り">'
-                      if marker not in page:
-                          raise SystemExit(f'og site name not found: {story_path}')
-                      page = page.replace(marker, marker + social_meta, 1)
-
-                      page = re.sub(
-                          r'(<p class="section-note">).*?(</p>)',
-                          lambda match: match.group(1) + html.escape(summary, quote=False) + match.group(2),
-                          page,
-                          count=1,
-                          flags=re.S,
-                      )
-
-                      links = []
-                      for target_slug in related[slug]:
-                          target = by_slug[target_slug]
-                          links.append(
-                              f'<a class="rank-item" href="{target_slug}.html">'
-                              '<span class="rank-num">›</span>'
-                              f'<span>{html.escape(target["title"], quote=False)}<br>'
-                              f'<small>{html.escape(target["category"], quote=False)}・約{int(target["minutes"])}分</small>'
-                              '</span></a>'
-                          )
-                      related_box = (
-                          '<div class="side-box"><h3>次に読む</h3>'
-                          '<div class="rank-list">' + ''.join(links) + '</div></div>'
-                      )
-                      page, count = re.subn(
-                          r'<div class="side-box"><h3>次に読む</h3><div class="rank-list">.*?</div></div>',
-                          related_box,
-                          page,
-                          count=1,
-                          flags=re.S,
-                      )
-                      if count != 1:
-                          raise SystemExit(f'related box not found: {story_path}')
-
-                      story_path.write_text(page, encoding='utf-8')
-
-                  config_path.unlink()
-                  continue
-
               slug = config['slug']
               minutes = int(config['minutes'])
               length = config.get('length', '長編')
@@ -218,13 +91,19 @@ jobs:
                   raise SystemExit(f'article replacement failed: {story_path}')
               story_path.write_text(page, encoding='utf-8')
 
-              target = by_slug.get(slug)
+              stories_path = root / 'assets' / 'stories.js'
+              stories_text = stories_path.read_text(encoding='utf-8')
+              prefix = 'window.STORIES = '
+              if not stories_text.startswith(prefix) or not stories_text.rstrip().endswith(';'):
+                  raise SystemExit('stories.js format is unexpected')
+              data = json.loads(stories_text[len(prefix):].rstrip()[:-1])
+              target = next((story for story in data if story.get('slug') == slug), None)
               if target is None:
                   raise SystemExit(f'story data not found: {slug}')
               target['length'] = length
               target['minutes'] = minutes
               target['summary'] = summary
-              stories_changed = True
+              stories_path.write_text(prefix + json.dumps(data, ensure_ascii=False, indent=2) + ';\n', encoding='utf-8')
 
               story_js_path = root / 'assets' / 'story.js'
               story_js = story_js_path.read_text(encoding='utf-8')
@@ -240,8 +119,6 @@ jobs:
 
               config_path.unlink()
 
-          if stories_changed:
-              stories_path.write_text(prefix + json.dumps(data, ensure_ascii=False, indent=2) + ';\n', encoding='utf-8')
           if not configs:
               print('No publish configurations found.')
           PY
@@ -253,48 +130,6 @@ jobs:
           node --check yorugatari/assets/story.js
           grep -F '約8分' yorugatari/stories/last-elevator.html
           grep -F '"minutes": 8' yorugatari/assets/stories.js
-          python - <<'PY'
-          from pathlib import Path
-          import json
-          import re
-
-          root = Path('yorugatari')
-          stories_text = (root / 'assets' / 'stories.js').read_text(encoding='utf-8')
-          data = json.loads(stories_text[len('window.STORIES = '):].rstrip()[:-1])
-          slugs = {story['slug'] for story in data}
-          incoming = {slug: 0 for slug in slugs}
-          for story in data:
-              path = root / 'stories' / f"{story['slug']}.html"
-              page = path.read_text(encoding='utf-8')
-              if '約2分' in page or '約3分' in page:
-                  raise SystemExit(f'stale reading time: {path}')
-              for required in (
-                  '<meta name="description"',
-                  '<link rel="canonical"',
-                  '<meta property="og:title"',
-                  '<meta property="og:description"',
-                  '<meta name="twitter:card"',
-                  '"timeRequired": "PT8M"',
-              ):
-                  if required not in page:
-                      raise SystemExit(f'missing SEO field {required}: {path}')
-              box = re.search(
-                  r'<div class="side-box"><h3>次に読む</h3><div class="rank-list">(.*?)</div></div>',
-                  page,
-                  flags=re.S,
-              )
-              if not box:
-                  raise SystemExit(f'related box missing: {path}')
-              targets = re.findall(r'href="([a-z0-9-]+)\.html"', box.group(1))
-              if len(targets) != 2 or story['slug'] in targets or len(set(targets)) != 2:
-                  raise SystemExit(f'invalid related links: {path}: {targets}')
-              for target in targets:
-                  if target not in slugs:
-                      raise SystemExit(f'unknown related target: {target}')
-                  incoming[target] += 1
-          if any(count != 2 for count in incoming.values()):
-              raise SystemExit(f'unbalanced incoming links: {incoming}')
-          PY
 
       - name: Commit generated content
         shell: bash
