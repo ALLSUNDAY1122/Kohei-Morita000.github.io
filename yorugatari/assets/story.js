@@ -10,7 +10,7 @@ const readingMinutes = {
   'night-bus': 8,
   'delivery-box': 8,
   'voice-memo': 8,
-  'missing-floor': 2,
+  'missing-floor': 8,
   'good-night': 2,
   'window-reflection': 1
 };
