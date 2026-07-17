@@ -8,7 +8,7 @@ const readingMinutes = {
   'three-knocks': 8,
   'read-receipt': 8,
   'night-bus': 8,
-  'delivery-box': 2,
+  'delivery-box': 8,
   'voice-memo': 2,
   'missing-floor': 2,
   'good-night': 2,
