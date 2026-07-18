@@ -1,0 +1,1 @@
+(()=>{const works=window.KYOKAI_WORKS||[];if(works.some(w=>w.id==='SKK-011'))return;const item={id:'SKK-011',series:'榊家異聞',file:'skk-011-genkan-ni-oku-kutsu.html',title:'玄関に置く靴',desc:'家族の誰の物でもない革靴を人数へ加えるたび、家族の誰か一人が数から外れ、語り手の靴だけが玄関外へ戻される。',length:'中編',mins:'約11分',fear:'3'};const index=works.findIndex(w=>w.series==='境界観測記');works.splice(index<0?works.length:index,0,item);})();
