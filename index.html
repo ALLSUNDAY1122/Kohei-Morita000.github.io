@@ -4,35 +4,177 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>境界夜話｜編集長プロジェクト</title>
-  <meta name="description" content="真壁夜話・黒瀬蒐集録・榊家異聞・境界観測記の4シリーズを掲載する、編集長プロジェクト専用サイトです。">
+  <meta name="description" content="真壁夜話・黒瀬蒐集録・榊家異聞・境界観測記の4シリーズだけを収録する、編集長プロジェクト専用の怪談アーカイブです。">
   <meta name="robots" content="index,follow">
+  <meta name="theme-color" content="#080808">
   <link rel="canonical" href="https://allsunday1122.github.io/kyokai-yawa/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="境界夜話">
+  <meta property="og:title" content="境界夜話｜編集長プロジェクト">
+  <meta property="og:description" content="真壁夜話・黒瀬蒐集録・榊家異聞・境界観測記の4シリーズだけを収録する独立アーカイブ。">
+  <meta property="og:url" content="https://allsunday1122.github.io/kyokai-yawa/">
+  <meta name="twitter:card" content="summary">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"境界夜話","url":"https://allsunday1122.github.io/kyokai-yawa/","description":"真壁夜話・黒瀬蒐集録・榊家異聞・境界観測記の4シリーズだけを収録する、編集長プロジェクト専用の怪談アーカイブです。","inLanguage":"ja"}</script>
   <style>
-    :root{color-scheme:dark;background:#080a0f;color:#ece7dc;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    :root{
+      color-scheme:dark;
+      --bg:#080808;
+      --panel:#11100e;
+      --panel-2:#171512;
+      --ink:#f3ecdf;
+      --muted:#b8afa0;
+      --dim:#80786d;
+      --line:#34302a;
+      --line-soft:#24211d;
+      --accent:#8f2630;
+      --accent-2:#c9a867;
+      --shadow:rgba(0,0,0,.52);
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:var(--bg);
+      color:var(--ink);
+    }
     *{box-sizing:border-box}
-    body{margin:0;min-height:100dvh;background:radial-gradient(circle at top,#202536 0,#0b0e15 42%,#07080c 100%);display:grid;place-items:center;padding:28px}
-    main{width:min(760px,100%);border:1px solid #393641;background:rgba(11,14,21,.9);padding:44px 34px;box-shadow:0 22px 70px rgba(0,0,0,.45)}
-    .eyebrow{letter-spacing:.18em;color:#aaa1b5;font-size:.78rem}
-    h1{font-family:serif;font-size:clamp(2.2rem,7vw,4.6rem);font-weight:500;margin:.25em 0 .35em}
-    p{line-height:1.9;color:#d0c9bd}
-    ul{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:0;margin:28px 0;list-style:none}
-    li{border:1px solid #34313a;padding:16px 18px;background:#11141d}
-    .note{border-top:1px solid #302d35;padding-top:22px;color:#928b84;font-size:.9rem}
-    @media(max-width:560px){main{padding:34px 22px}ul{grid-template-columns:1fr}}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      min-height:100dvh;
+      background:
+        linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px) 0 0/44px 44px,
+        linear-gradient(0deg,rgba(255,255,255,.018) 1px,transparent 1px) 0 0/44px 44px,
+        linear-gradient(180deg,#0a0a09 0%,#11100e 52%,#080808 100%);
+      color:var(--ink);
+    }
+    a{color:inherit}
+    .skip{position:absolute;left:16px;top:-80px;background:var(--ink);color:#0b0b0b;padding:10px 14px;z-index:10}
+    .skip:focus{top:16px}
+    .wrap{width:min(1120px,calc(100% - 40px));margin:0 auto}
+    header{
+      border-bottom:1px solid var(--line-soft);
+      background:rgba(8,8,8,.86);
+      position:sticky;
+      top:0;
+      z-index:5;
+      backdrop-filter:blur(14px);
+    }
+    .nav{min-height:64px;display:flex;align-items:center;justify-content:space-between;gap:18px}
+    .brand{display:flex;align-items:baseline;gap:12px;text-decoration:none}
+    .brand strong{font-family:Georgia,"Yu Mincho","Hiragino Mincho ProN",serif;font-size:1.25rem;font-weight:600}
+    .brand span,.nav small{color:var(--muted);font-size:.88rem}
+    .nav small{border:1px solid var(--line);padding:7px 10px;background:#0e0d0c}
+    main{overflow:hidden}
+    .hero{padding:72px 0 46px;border-bottom:1px solid var(--line-soft)}
+    .hero-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(340px,.95fr);gap:42px;align-items:stretch}
+    .label{color:var(--accent-2);font-size:.92rem;margin:0 0 16px}
+    h1{font-family:Georgia,"Yu Mincho","Hiragino Mincho ProN",serif;font-size:4.2rem;line-height:1.08;font-weight:500;margin:0 0 20px}
+    .lead{font-size:1.12rem;line-height:2;color:#ded5c8;max-width:660px;margin:0}
+    .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+    .button{display:inline-flex;align-items:center;gap:9px;text-decoration:none;border:1px solid var(--line);padding:12px 16px;background:#13110f;color:var(--ink);min-height:46px}
+    .button.primary{border-color:#62202a;background:#2a0f14;color:#fff4e8}
+    .button:focus-visible,.series-card:focus-within{outline:3px solid var(--accent-2);outline-offset:4px}
+    .visual{position:relative;min-height:420px;border:1px solid var(--line);background:#0d0c0b;box-shadow:0 26px 80px var(--shadow);overflow:hidden}
+    .visual:before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(201,168,103,.12),transparent 38%),repeating-linear-gradient(90deg,rgba(255,255,255,.045) 0 1px,transparent 1px 86px)}
+    .visual-inner{position:absolute;inset:28px;display:grid;grid-template-columns:92px 1fr;gap:22px}
+    .seal{border:1px solid #5a2530;background:#1a0d10;color:#eadac1;display:grid;place-items:center;font-family:Georgia,"Yu Mincho","Hiragino Mincho ProN",serif;font-size:1.35rem;writing-mode:vertical-rl}
+    .ledger{display:grid;gap:14px;align-content:end}
+    .slip{border:1px solid var(--line);background:rgba(20,18,15,.88);padding:16px 18px}
+    .slip b{display:block;font-family:Georgia,"Yu Mincho","Hiragino Mincho ProN",serif;font-size:1.18rem;font-weight:500;margin-bottom:6px}
+    .slip span{display:block;color:var(--muted);line-height:1.7;font-size:.94rem}
+    .status{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);border-top:0;background:#0d0c0b}
+    .status div{padding:18px;border-right:1px solid var(--line-soft)}
+    .status div:last-child{border-right:0}
+    .status b{display:block;color:var(--ink);font-weight:600;margin-bottom:5px}
+    .status span{color:var(--muted);font-size:.92rem;line-height:1.55}
+    section{padding:58px 0;border-bottom:1px solid var(--line-soft)}
+    h2{font-family:Georgia,"Yu Mincho","Hiragino Mincho ProN",serif;font-size:2rem;font-weight:500;margin:0 0 12px}
+    .section-head{display:flex;justify-content:space-between;gap:22px;align-items:end;margin-bottom:24px}
+    .section-head p{max-width:620px;margin:0;color:var(--muted);line-height:1.85}
+    .series-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+    .series-card{border:1px solid var(--line);background:linear-gradient(180deg,var(--panel-2),var(--panel));padding:22px 18px;min-height:230px;display:flex;flex-direction:column;justify-content:space-between;text-decoration:none}
+    .series-card h3{font-family:Georgia,"Yu Mincho","Hiragino Mincho ProN",serif;font-size:1.45rem;font-weight:500;margin:0 0 12px}
+    .series-card p{color:var(--muted);line-height:1.75;margin:0}
+    .tag{display:inline-flex;width:max-content;border:1px solid #45362a;color:#d8c7a2;background:#15120d;padding:6px 9px;font-size:.82rem;margin-top:22px}
+    .rules{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .rule{border-left:3px solid var(--accent);background:#11100e;padding:18px 20px;color:var(--muted);line-height:1.8}
+    .rule b{display:block;color:var(--ink);margin-bottom:5px}
+    footer{padding:34px 0;color:var(--dim);font-size:.9rem}
+    @media(max-width:880px){
+      .hero{padding-top:48px}.hero-grid,.rules{grid-template-columns:1fr}.visual{min-height:360px}.series-grid{grid-template-columns:repeat(2,1fr)}h1{font-size:3.1rem}.section-head{display:block}.section-head p{margin-top:10px}.status{grid-template-columns:1fr}.status div{border-right:0;border-bottom:1px solid var(--line-soft)}.status div:last-child{border-bottom:0}
+    }
+    @media(max-width:560px){
+      .wrap{width:min(100% - 28px,1120px)}.nav{align-items:flex-start;flex-direction:column;padding:14px 0}.nav small{font-size:.8rem}.hero{padding:38px 0 34px}h1{font-size:2.5rem}.lead{font-size:1rem}.actions{display:grid}.button{justify-content:center}.visual-inner{inset:18px;grid-template-columns:64px 1fr;gap:14px}.seal{font-size:1rem}.slip{padding:13px}.series-grid{grid-template-columns:1fr}section{padding:42px 0}
+    }
   </style>
 </head>
 <body>
-  <main>
-    <div class="eyebrow">EDITORIAL HORROR ARCHIVE</div>
-    <h1>境界夜話</h1>
-    <p>編集長プロジェクト専用の独立ホラーサイトです。掲載対象は、次の4シリーズに限定します。</p>
-    <ul>
-      <li>真壁夜話</li>
-      <li>黒瀬蒐集録</li>
-      <li>榊家異聞</li>
-      <li>境界観測記</li>
-    </ul>
-    <p class="note">「怖い話（単独）」の作品・設定・登場人物・公開データは、このサイトでは取り扱いません。作品ページは分離監査後に順次公開します。</p>
+  <a class="skip" href="#main">本文へ移動</a>
+  <header>
+    <div class="wrap nav">
+      <a class="brand" href="/kyokai-yawa/" aria-label="境界夜話トップ">
+        <strong>境界夜話</strong>
+        <span>編集長プロジェクト</span>
+      </a>
+      <small>4シリーズ専用アーカイブ</small>
+    </div>
+  </header>
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="wrap hero-grid">
+        <div>
+          <p class="label">Editorial Horror Archive</p>
+          <h1 id="hero-title">境界夜話</h1>
+          <p class="lead">真壁夜話・黒瀬蒐集録・榊家異聞・境界観測記だけを収録する、編集長プロジェクト専用の公開拠点です。単独の怖い話とは作品・設定・公開データを共有しません。</p>
+          <div class="actions" aria-label="主要導線">
+            <a class="button primary" href="#series">シリーズを見る</a>
+            <a class="button" href="#rules">公開境界を確認</a>
+          </div>
+        </div>
+        <div class="visual" aria-label="境界夜話の記録棚を表す装飾">
+          <div class="visual-inner">
+            <div class="seal">編集長記録</div>
+            <div class="ledger">
+              <div class="slip"><b>真壁夜話</b><span>日常の端で起きた違和感を記録する。</span></div>
+              <div class="slip"><b>黒瀬蒐集録</b><span>物と記憶に残る、説明のつかない痕跡を集める。</span></div>
+              <div class="slip"><b>榊家異聞</b><span>家系、土地、継承される沈黙を追う。</span></div>
+              <div class="slip"><b>境界観測記</b><span>こちら側と向こう側の境目を観測する。</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <div class="wrap status" aria-label="公開状態">
+      <div><b>公開先分離済み</b><span>編集長サイトは /kyokai-yawa/ で運用します。</span></div>
+      <div><b>作品移設中</b><span>4シリーズ作品のみ順次掲載します。</span></div>
+      <div><b>混在監査中</b><span>単独作品はこのサイトの公開対象外です。</span></div>
+    </div>
+    <section id="series" aria-labelledby="series-title">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 id="series-title">収録シリーズ</h2>
+          <p>このサイトで扱うのは下記の4シリーズのみです。作品ページは分離監査後に公開します。</p>
+        </div>
+        <div class="series-grid">
+          <article class="series-card"><div><h3>真壁夜話</h3><p>静かな生活記録の奥に、少しずつ合わない事実が残るシリーズ。</p></div><span class="tag">準備中</span></article>
+          <article class="series-card"><div><h3>黒瀬蒐集録</h3><p>蒐集品、手紙、写真、録音。残された物から怪異を読むシリーズ。</p></div><span class="tag">準備中</span></article>
+          <article class="series-card"><div><h3>榊家異聞</h3><p>家と土地に受け継がれる記録を、途切れた証言からたどるシリーズ。</p></div><span class="tag">準備中</span></article>
+          <article class="series-card"><div><h3>境界観測記</h3><p>駅、道路、建物、夢。境目で起きる現象を観測するシリーズ。</p></div><span class="tag">準備中</span></article>
+        </div>
+      </div>
+    </section>
+    <section id="rules" aria-labelledby="rules-title">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 id="rules-title">公開境界</h2>
+          <p>読者にも運用者にも混在が起きないよう、このサイトの扱う範囲を明示します。</p>
+        </div>
+        <div class="rules">
+          <div class="rule"><b>単独作品は掲載しません</b>「怖い話（単独）」の作品、設定、登場人物、公開データはこのサイトへ取り込みません。</div>
+          <div class="rule"><b>4シリーズだけを扱います</b>真壁夜話、黒瀬蒐集録、榊家異聞、境界観測記のみを編集長プロジェクトの対象にします。</div>
+        </div>
+      </div>
+    </section>
   </main>
+  <footer>
+    <div class="wrap">© 境界夜話｜編集長プロジェクト</div>
+  </footer>
 </body>
 </html>
