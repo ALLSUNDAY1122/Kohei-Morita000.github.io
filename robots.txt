@@ -1,5 +1,4 @@
 User-agent: *
 Allow: /
-Disallow: /yorugatari/
 
 Sitemap: https://allsunday1122.github.io/kyokai-yawa/sitemap.xml
