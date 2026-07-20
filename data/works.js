@@ -1,5 +1,5 @@
 window.KYOKAI_WORKS=[
-{id:'MKB-001',series:'真壁夜話',file:'mkb-001-taikin-kiroku-2514.html',title:'退勤記録 25:14',desc:'毎週一件だけ現れる深夜退勤の記録が、閉鎖された八階で働いた具体的な記憶を社員へ作っていく。',length:'短編',mins:'約5分',fear:'4'},
+{id:'MKB-001',series:'真壁夜話',file:'mkb-001-taikin-kiroku-2514.html',title:'退勤記録 25:14',desc:'毎週一件だけ現れる25時14分の退勤記録。記録を直すと記憶まで消え、閉鎖八階の旧端末には一人分の退勤処理が残されていた。',length:'短編',mins:'約7分',fear:'4'},
 {id:'MKB-002',series:'真壁夜話',file:'mkb-002-takuhai-box-13.html',title:'宅配ボックス13',desc:'設備図に存在しない13番への配達写真が、語り手の確認行動と電子署名を先回りして記録する。',length:'短編',mins:'約5分',fear:'3'},
 {id:'MKB-003',series:'真壁夜話',file:'mkb-003-kyoyu-gamen-no-goninme.html',title:'共有画面の五人目',desc:'参加者は四人なのに閲覧者数だけが五人になる。名前のないカーソルは、正規の主催者として会議の記録を書き換える。',length:'短編',mins:'約5分',fear:'3'},
 {id:'MKB-004',series:'真壁夜話',file:'mkb-004-kao-ninsho-no-dairinin.html',title:'顔認証の代理人',desc:'本人より先に入館した顔画像のない代理人が、予定と権限を正規記録として先回りさせる。',length:'短編',mins:'約5分',fear:'4'},
@@ -10,7 +10,7 @@ window.KYOKAI_WORKS=[
 {id:'MKB-009',series:'真壁夜話',file:'mkb-009-yoyakusha-mei-wa-kuran.html',title:'予約者名は空欄',desc:'予約者名だけが空欄の会議室予約が、座席と飲料に合わせて無関係な六人を統合し、受付担当者を主催者へ確定する。',length:'短編',mins:'約6分',fear:'4'},
 {id:'MKB-010',series:'真壁夜話',file:'mkb-010-kidoku-no-junban.html',title:'既読の順番',desc:'未送信の業務メッセージに付く既読順が、承認・確認・実行の履歴と参加者の記憶を過去へ遡って成立させる。',length:'短編',mins:'約6分',fear:'3'},
 {id:'MKB-011',series:'真壁夜話',file:'mkb-011-kanshi-eizo-no-osoban.html',title:'監視映像の遅番',desc:'十四分遅れる監視映像が、現場対応を映像側の過去へ吸収し、未処理の時間を翌日の勤務表へ持ち越す。',length:'短編',mins:'約7分',fear:'4'},
-{id:'KRS-001',series:'黒瀬蒐集録',file:'krs-001-sanbonme-no-sakaigi.html',title:'三本目の境木',desc:'二本しかない村境の木に対し、維持費台帳だけは三本目を記録し続ける。存在しない境界が一軒の所属を変えていく。',length:'中編',mins:'約7分',fear:'4'},
+{id:'KRS-001',series:'黒瀬蒐集録',file:'krs-001-sanbonme-no-sakaigi.html',title:'三本目の境木',desc:'二本しか確認できない村境の境木に対し、古い維持費台帳だけは三本目を記録し続けている。管理費の処理を変えると、一軒の所属と地図も変化した。',length:'中編',mins:'約9分',fear:'4'},
 {id:'KRS-002',series:'黒瀬蒐集録',file:'krs-002-shiomachi-no-ishidan.html',title:'潮待ちの石段',desc:'干潮時だけ露出する石段の段数が、海辺の集落の戸数と連動する。余分な一段の後、記録に存在しない家の痕跡が見つかる。',length:'中編',mins:'約8分',fear:'3'},
 {id:'KRS-003',series:'黒瀬蒐集録',file:'krs-003-torii-no-soto-no-jizo.html',title:'鳥居の外の地蔵',desc:'七体の地蔵に対して供物は八つ。鳥居外の一体だけを、祭礼記録と境内図が内側から除外し続ける。',length:'中編',mins:'約9分',fear:'3'},
 {id:'KRS-004',series:'黒瀬蒐集録',file:'krs-004-showa-43nen-no-shurakuzu.html',title:'昭和四十三年の集落図',desc:'一年分の集落図にだけ描かれた路地と四軒。存在しない四戸分の負担と住所が、現在の集落へ重なる。',length:'中編',mins:'約9分',fear:'4'},
