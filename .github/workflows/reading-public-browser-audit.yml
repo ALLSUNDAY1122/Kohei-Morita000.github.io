@@ -13,6 +13,7 @@ on:
     paths:
       - 'playwright.config.mjs'
       - 'tests/reading-backup.spec.mjs'
+      - 'tests/reading-state.spec.mjs'
       - 'scripts/reading-browser-reporter.mjs'
       - 'scripts/audit-reading-public-browser-workflow.mjs'
       - '.github/workflows/reading-public-browser-audit.yml'
@@ -52,7 +53,7 @@ jobs:
       - name: Operate the published site in real browsers
         id: tests
         continue-on-error: true
-        run: npx playwright test tests/reading-backup.spec.mjs --retries=2
+        run: npx playwright test tests/reading-backup.spec.mjs tests/reading-state.spec.mjs --retries=2
       - name: Upload public browser report traces screenshots and videos
         if: always()
         uses: actions/upload-artifact@v4
