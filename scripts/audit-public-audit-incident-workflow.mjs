@@ -22,7 +22,10 @@ const requirements=[
   ["head_branch == 'main'",'mainブランチ制限'],
   ['const title=`[監視] 境界夜話 ${run.name} 失敗`','監査別Issueタイトル'],
   ["const label='site-monitoring'",'固定監視ラベル'],
-  ["run.conclusion!=='success'",'非成功時の障害判定'],
+  ["new Set(['failure','timed_out','action_required','startup_failure','stale'])",'実障害の結論一覧'],
+  ['const isIncident=incidentConclusions.has(run.conclusion)','実障害判定'],
+  ["run.conclusion==='success'&&incident",'成功時だけの復旧判定'],
+  ['障害判定から除外しました。Issueは変更しません。','除外結果の非通知処理'],
   ['github.rest.issues.create','障害Issue作成'],
   ['github.rest.issues.createComment','連続失敗・復旧コメント'],
   ["state:'closed'",'復旧時のIssueクローズ'],
@@ -37,14 +40,16 @@ const createCount=(workflow.match(/github\.rest\.issues\.create\(/g)||[]).length
 if(createCount!==1)errors.push(`Issue作成処理が1件ではありません（${createCount}件）`);
 if(!workflow.includes("issues.find(issue=>!issue.pull_request&&issue.title===title)"))errors.push('同じ監査の既存Issueを再利用する処理がありません');
 if(!workflow.includes("if(incident)"))errors.push('連続失敗を既存Issueへ追記する分岐がありません');
-if(!workflow.includes("else if(incident)"))errors.push('正常復旧時だけ該当Issueを閉じる分岐がありません');
+if(!workflow.includes("else if(run.conclusion==='success'&&incident)"))errors.push('正常復旧時だけ該当Issueを閉じる分岐がありません');
+if(workflow.includes("run.conclusion!=='success'"))errors.push('cancelled・skippedを含む全非success判定が残っています');
 if(workflow.includes('pull_request_target'))errors.push('pull_request_targetを使用しています');
 
 const report=[
   '# 境界夜話 公開監査障害Issue通知 設定監査',
   '',
   '- 監視対象: Public Reading Browser Audit / Public Site Health Audit / Public Offline Browser Audit',
-  '- 障害判定: failure・cancelled・timed_out・skipped等の非success',
+  '- 障害判定: failure・timed_out・action_required・startup_failure・stale',
+  '- 除外結果: cancelled・skipped・neutralはIssueを作成せず、既存Issueも変更しない',
   '- 通知方法: 監査ごとにGitHub Issueを1件だけ作成し、連続失敗は同じIssueへ追記',
   '- 復旧処理: 同じ監査の次回success時に復旧コメントを追加して自動クローズ',
   '- 実行制限: 同一リポジトリ・mainブランチのみ',
