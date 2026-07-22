@@ -29,14 +29,14 @@ class ReadingBrowserReporter{
     const target=process.env.PLAYWRIGHT_BASE_URL?.trim()||'ローカル生成サイト';
     const isPublic=target.startsWith('https://');
     const reportName=process.env.READING_BROWSER_REPORT?.trim()||'reading-backup-browser-audit.md';
-    const heading=isPublic?'# 境界夜話 公開サイト読書機能 実ブラウザー監査':'# 境界夜話 読書記録バックアップ 実ブラウザー監査';
+    const heading=isPublic?'# 境界夜話 公開サイト読書機能 実ブラウザー監査':'# 境界夜話 読書機能 実ブラウザー監査';
     const report=[
       heading,
       '',
       `- 実行日時: ${new Date().toISOString()}`,
       `- 実行対象: ${target}`,
       `- 実行環境: ${projects.join(' / ')||'なし'}`,
-      '- 対象操作: JSON書き出し・追加復元・置換復元・破損JSON拒否・未知作品ID拒否・復元後画面反映',
+      '- 対象操作: 読了切替・あとで読む・途中位置保存/再開・自動読了・次の未読・JSON書き出し/追加復元/置換復元・不正JSON拒否・画面反映',
       '- Service Worker: 試験中は無効化し、現在配信中のHTML・JavaScriptを直接検証',
       `- テスト結果: ${fullResult.status}`,
       `- 成功: ${passed}`,
