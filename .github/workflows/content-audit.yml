@@ -3,6 +3,7 @@ name: Content Audit
 on:
   push:
     paths:
+      - 'index.html'
       - 'stories/**'
       - 'data/works.js'
       - 'data/story-nav.js'
@@ -11,6 +12,7 @@ on:
       - 'scripts/audit-length-categories.mjs'
       - 'scripts/audit-story-navigation.mjs'
       - 'scripts/audit-fear-levels.mjs'
+      - 'scripts/audit-html-basics.mjs'
       - 'scripts/normalize-reading-times.mjs'
       - 'scripts/normalize-story-navigation.mjs'
       - 'scripts/normalize-fear-levels.mjs'
@@ -61,6 +63,11 @@ jobs:
         continue-on-error: true
         run: node scripts/audit-fear-levels.mjs
 
+      - name: Audit HTML metadata internal links and accessibility
+        id: html_audit
+        continue-on-error: true
+        run: node scripts/audit-html-basics.mjs
+
       - name: Upload audit reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -83,5 +90,5 @@ jobs:
           fi
 
       - name: Fail when audit errors exist
-        if: steps.content_audit.outcome == 'failure' || steps.length_audit.outcome == 'failure' || steps.navigation_audit.outcome == 'failure' || steps.fear_audit.outcome == 'failure'
+        if: steps.content_audit.outcome == 'failure' || steps.length_audit.outcome == 'failure' || steps.navigation_audit.outcome == 'failure' || steps.fear_audit.outcome == 'failure' || steps.html_audit.outcome == 'failure'
         run: exit 1
