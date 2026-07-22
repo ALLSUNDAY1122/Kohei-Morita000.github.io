@@ -1,6 +1,14 @@
 name: Live Story Overview Audit
 
 on:
+  push:
+    paths:
+      - 'stories/**'
+      - 'data/story-overview.css'
+      - 'data/reader-tools.css'
+      - 'data/reader-tools.js'
+      - 'scripts/audit-live-story-overviews.mjs'
+      - '.github/workflows/live-story-overview.yml'
   workflow_run:
     workflows: ['Story Overview']
     types: [completed]
@@ -15,7 +23,7 @@ permissions:
 
 jobs:
   audit-live:
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
