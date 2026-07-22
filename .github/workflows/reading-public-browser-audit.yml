@@ -11,11 +11,15 @@ on:
     types: [completed]
   push:
     paths:
+      - 'package.json'
       - 'playwright.config.mjs'
       - 'tests/reading-backup.spec.mjs'
       - 'tests/reading-state.spec.mjs'
+      - 'tests/site-health.spec.mjs'
       - 'scripts/reading-browser-reporter.mjs'
+      - 'scripts/site-health-reporter.mjs'
       - 'scripts/audit-reading-public-browser-workflow.mjs'
+      - 'scripts/audit-site-health-workflow.mjs'
       - '.github/workflows/reading-public-browser-audit.yml'
   workflow_dispatch:
 
@@ -30,7 +34,7 @@ jobs:
   public-browser-audit:
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     env:
       PLAYWRIGHT_BASE_URL: https://allsunday1122.github.io/kyokai-yawa/
       READING_BROWSER_REPORT: reading-public-browser-audit.md
@@ -43,25 +47,35 @@ jobs:
           node-version: '20'
       - name: Audit public browser schedule and safeguards
         run: node scripts/audit-reading-public-browser-workflow.mjs
+      - name: Audit accessibility and runtime safeguards
+        run: node scripts/audit-site-health-workflow.mjs
       - name: Wait for GitHub Pages deployment
         if: github.event_name != 'schedule'
         run: sleep 60
-      - name: Install Playwright Test
+      - name: Install browser test dependencies
         run: npm install --no-audit --no-fund
       - name: Install Chromium and WebKit
         run: npx playwright install --with-deps chromium webkit
-      - name: Operate the published site in real browsers
+      - name: Operate reading features on the published site
         id: tests
         continue-on-error: true
         run: npx playwright test tests/reading-backup.spec.mjs tests/reading-state.spec.mjs --retries=2
-      - name: Upload public browser report traces screenshots and videos
+      - name: Audit accessibility runtime errors and failed requests
+        id: health
+        continue-on-error: true
+        env:
+          SITE_HEALTH_REPORT: site-public-health-audit.md
+        run: npx playwright test tests/site-health.spec.mjs --retries=1
+      - name: Upload browser reports traces screenshots and videos
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: reading-public-browser-audit
+          name: public-reading-and-site-health-audit
           path: |
             reports/reading-public-browser-workflow-audit.md
             reports/reading-public-browser-audit.md
+            reports/site-health-workflow-audit.md
+            reports/site-public-health-audit.md
             playwright-report
             test-results
           if-no-files-found: warn
@@ -71,14 +85,15 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add reports/reading-public-browser-workflow-audit.md reports/reading-public-browser-audit.md
+          git add reports/reading-public-browser-workflow-audit.md reports/reading-public-browser-audit.md reports/site-health-workflow-audit.md
+          if [ -f reports/site-public-health-audit.md ]; then git add reports/site-public-health-audit.md; fi
           if git diff --cached --quiet; then
             echo "Public browser audit reports are unchanged."
           else
-            git commit -m "chore: record public reading browser audit"
+            git commit -m "chore: record public reading and site health audit"
             git pull --rebase origin main
             git push
           fi
       - name: Fail when public browser tests fail
-        if: steps.tests.outcome == 'failure'
+        if: steps.tests.outcome == 'failure' || steps.health.outcome == 'failure'
         run: exit 1
