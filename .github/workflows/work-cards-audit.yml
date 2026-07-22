@@ -13,6 +13,7 @@ on:
       - 'scripts/normalize-related-stories.mjs'
       - 'scripts/normalize-static-home-rendering.mjs'
       - 'scripts/audit-work-cards.mjs'
+      - 'scripts/audit-static-home-rendering.mjs'
       - 'scripts/audit-related-stories.mjs'
       - 'scripts/audit-discovery.mjs'
       - '.github/workflows/work-cards-audit.yml'
@@ -51,6 +52,11 @@ jobs:
         continue-on-error: true
         run: node scripts/audit-work-cards.mjs
 
+      - name: Audit static homepage rendering
+        id: static_render_audit
+        continue-on-error: true
+        run: node scripts/audit-static-home-rendering.mjs
+
       - name: Audit story taxonomy and related links
         id: related_audit
         continue-on-error: true
@@ -66,7 +72,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add index.html feed.xml stories data/story-taxonomy.json reports/work-cards-audit.md reports/related-stories-audit.md reports/discovery-audit.md
+          git add index.html feed.xml stories data/story-taxonomy.json reports/work-cards-audit.md reports/static-home-rendering-audit.md reports/related-stories-audit.md reports/discovery-audit.md
           if git diff --cached --quiet; then
             echo "Story cards and audit reports are unchanged."
           else
@@ -76,5 +82,5 @@ jobs:
           fi
 
       - name: Fail when card audits contain errors
-        if: steps.cards_audit.outcome == 'failure' || steps.related_audit.outcome == 'failure' || steps.discovery_audit.outcome == 'failure'
+        if: steps.cards_audit.outcome == 'failure' || steps.static_render_audit.outcome == 'failure' || steps.related_audit.outcome == 'failure' || steps.discovery_audit.outcome == 'failure'
         run: exit 1
