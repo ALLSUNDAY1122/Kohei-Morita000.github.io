@@ -5,6 +5,9 @@ on:
     paths:
       - '.nojekyll'
       - 'index.html'
+      - '404.html'
+      - 'robots.txt'
+      - 'feed.xml'
       - 'stories/**'
       - 'data/works.js'
       - 'data/story-nav.js'
@@ -17,12 +20,14 @@ on:
       - 'scripts/audit-fear-levels.mjs'
       - 'scripts/audit-html-basics.mjs'
       - 'scripts/audit-public-assets.mjs'
+      - 'scripts/audit-discovery.mjs'
       - 'scripts/normalize-reading-times.mjs'
       - 'scripts/normalize-story-navigation.mjs'
       - 'scripts/normalize-fear-levels.mjs'
       - 'scripts/normalize-html-basics.mjs'
       - 'scripts/normalize-public-assets.mjs'
       - 'scripts/normalize-shared-story-css.mjs'
+      - 'scripts/normalize-discovery.mjs'
       - '.github/workflows/content-audit.yml'
   workflow_dispatch:
 
@@ -63,6 +68,9 @@ jobs:
       - name: Extract completely shared story CSS
         run: node scripts/normalize-shared-story-css.mjs
 
+      - name: Generate search discovery metadata and RSS
+        run: node scripts/normalize-discovery.mjs
+
       - name: Audit story metadata and cross-story repetition
         id: content_audit
         continue-on-error: true
@@ -93,6 +101,11 @@ jobs:
         continue-on-error: true
         run: node scripts/audit-public-assets.mjs
 
+      - name: Audit search discovery 404 robots and RSS
+        id: discovery_audit
+        continue-on-error: true
+        run: node scripts/audit-discovery.mjs
+
       - name: Upload audit reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -106,7 +119,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A .nojekyll index.html stories data sitemap.xml reports/*.md
+          git add -A .nojekyll index.html 404.html robots.txt feed.xml stories data sitemap.xml reports/*.md
           if git diff --cached --quiet; then
             echo "Content metadata and audit reports are unchanged."
           else
@@ -115,5 +128,5 @@ jobs:
           fi
 
       - name: Fail when audit errors exist
-        if: steps.content_audit.outcome == 'failure' || steps.length_audit.outcome == 'failure' || steps.navigation_audit.outcome == 'failure' || steps.fear_audit.outcome == 'failure' || steps.html_audit.outcome == 'failure' || steps.assets_audit.outcome == 'failure'
+        if: steps.content_audit.outcome == 'failure' || steps.length_audit.outcome == 'failure' || steps.navigation_audit.outcome == 'failure' || steps.fear_audit.outcome == 'failure' || steps.html_audit.outcome == 'failure' || steps.assets_audit.outcome == 'failure' || steps.discovery_audit.outcome == 'failure'
         run: exit 1
