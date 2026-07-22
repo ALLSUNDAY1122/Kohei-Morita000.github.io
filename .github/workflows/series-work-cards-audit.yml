@@ -1,0 +1,57 @@
+name: Series Work Cards
+
+on:
+  push:
+    paths:
+      - 'data/works.js'
+      - 'data/story-taxonomy.json'
+      - 'data/series-pages.css'
+      - 'data/series-work-cards.css'
+      - 'data/series-archive-tools.js'
+      - 'scripts/normalize-series-pages.mjs'
+      - 'scripts/audit-series-pages.mjs'
+      - 'scripts/audit-series-work-cards.mjs'
+      - '.github/workflows/series-work-cards-audit.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: series-work-cards-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  generate-and-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Generate series pages
+        run: node scripts/normalize-series-pages.mjs
+      - name: Audit series pages
+        id: pages
+        continue-on-error: true
+        run: node scripts/audit-series-pages.mjs
+      - name: Audit comparable cards and controls
+        id: cards
+        continue-on-error: true
+        run: node scripts/audit-series-work-cards.mjs
+      - name: Commit generated pages and reports
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add series index.html sitemap.xml reports/series-pages-audit.md reports/series-work-cards-audit.md
+          if git diff --cached --quiet; then
+            echo "Series cards and reports are unchanged."
+          else
+            git commit -m "chore: publish comparable series story cards"
+            git pull --rebase origin main
+            git push
+          fi
+      - name: Fail when audit errors exist
+        if: steps.pages.outcome == 'failure' || steps.cards.outcome == 'failure'
+        run: exit 1
