@@ -1,0 +1,56 @@
+name: Story Overview
+
+on:
+  push:
+    paths:
+      - 'stories/**'
+      - 'data/works.js'
+      - 'data/story-taxonomy.json'
+      - 'data/story-overview.css'
+      - 'data/reader-tools.css'
+      - 'data/reader-tools.js'
+      - 'scripts/normalize-story-overviews.mjs'
+      - 'scripts/audit-story-overviews.mjs'
+      - '.github/workflows/story-overview.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: story-overview-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  normalize-and-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generate unified story overview panels
+        run: node scripts/normalize-story-overviews.mjs
+
+      - name: Audit story overview panels
+        run: node scripts/audit-story-overviews.mjs
+
+      - name: Audit related story data remains synchronized
+        run: node scripts/audit-related-stories.mjs
+
+      - name: Commit normalized pages and report
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add stories data/story-overview.css data/reader-tools.css data/reader-tools.js reports/story-overviews-audit.md
+          if git diff --cached --quiet; then
+            echo "Story overview pages and reports are unchanged."
+          else
+            git commit -m "chore: publish unified story overview panels"
+            git pull --rebase origin main
+            git push
+          fi
