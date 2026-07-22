@@ -5,6 +5,7 @@ on:
     workflows:
       - 'Public Reading Browser Audit'
       - 'Public Site Health Audit'
+      - 'Public Offline Browser Audit'
     types: [completed]
   push:
     paths:
