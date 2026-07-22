@@ -1,0 +1,19 @@
+const base='https://allsunday1122.github.io/kyokai-yawa/';
+const worksSource=await fetch(`${base}data/works.js?audit=${Date.now()}`).then(response=>response.text());
+const sandbox={window:{}};Function('window',worksSource)(sandbox.window);const works=sandbox.window.KYOKAI_WORKS||[];
+const navigationPages=[['トップページ',''],...['makabe','kurose','sakaki','kansoku'].map(slug=>[`シリーズ ${slug}`,`series/${slug}.html`]),...works.map(work=>[work.id,`stories/${work.file}`])];
+const assets=[['読書記録CSS','data/reading-log.css','text/css'],['読書記録JavaScript','data/reading-log.js','javascript'],['作品データ','data/works.js','javascript'],['読了管理','data/reading-status.js','javascript'],['保存管理','data/saved-stories.js','javascript']];
+const errors=[];const warnings=[];const rows=[];const times=[];let navPages=0;
+const get=async(label,path,expected)=>{const started=Date.now();const response=await fetch(`${base}${path}?audit=${Date.now()}`,{headers:{'cache-control':'no-cache'}});const elapsed=Date.now()-started;times.push(elapsed);const type=response.headers.get('content-type')||'';const text=await response.text();rows.push({label,http:response.status,type,time:elapsed});if(!response.ok)errors.push(`${label}: HTTP ${response.status}`);if(expected&&!type.includes(expected))errors.push(`${label}: Content-Typeが不正です（${type}）`);return text;};
+const page=await get('読書記録ページ','reading-log.html','text/html');
+if(!page.includes('<meta name="robots" content="noindex,follow">'))errors.push('本番読書記録ページがnoindex,followではありません');
+for(const token of ['data-count-read','data-count-unread','data-count-saved','data-count-progress','data-reading-log-grid'])if(!page.includes(token))errors.push(`本番読書記録ページの要素がありません: ${token}`);
+for(const [label,path] of navigationPages){const html=await get(label,path,'text/html');const links=(html.match(/href="\/kyokai-yawa\/reading-log\.html"/g)||[]).length;if(links===1)navPages++;else errors.push(`${label}: 読書記録リンクが1件ではありません（${links}件）`);}
+const assetText={};for(const [label,path,type] of assets)assetText[path]=await get(label,path,type);
+const js=assetText['data/reading-log.js']||'';
+for(const token of ['getHistory','getSavedAt','matchesState','reading?.toggle','saved?.toggle','localStorage.getItem'])if(!js.includes(token))errors.push(`本番読書記録処理がありません: ${token}`);
+for(const risky of ['fetch(','sendBeacon','XMLHttpRequest','WebSocket'])if(js.includes(risky))errors.push(`本番読書記録JavaScriptに外部通信処理があります: ${risky}`);
+if(navPages!==53)errors.push(`本番読書記録導線が53ページではありません（${navPages}件）`);
+const sorted=[...times].sort((a,b)=>a-b);const median=sorted[Math.floor(sorted.length/2)]||0;const p95=sorted[Math.min(sorted.length-1,Math.ceil(sorted.length*.95)-1)]||0;
+const report=['# 境界夜話 本番読書記録ページ監査','',`- 実行日時: ${new Date().toISOString()}`,'- 読書記録ページ: 1',`- 公開作品: ${works.length}/48`,`- 読書記録への導線: ${navPages}/53ページ`,`- 共通資産: ${assets.length}`,'- 保存方式: ブラウザー端末内localStorage','- 検索エンジン: noindex,follow','- 外部送信: なし',`- エラー: ${errors.length}`,`- 警告: ${warnings.length}`,`- 応答時間中央値: ${median}ms`,`- 応答時間p95: ${p95}ms`,'','## エラー','',...(errors.length?errors.map(error=>`- ${error}`):['- なし']),'','## 警告','',...(warnings.length?warnings.map(warning=>`- ${warning}`):['- なし']),'','## 配信確認（主要）','','| 対象 | HTTP | Content-Type | 応答 |','|---|---:|---|---:|',...rows.filter((_,index)=>index===0||index<6||index>=navigationPages.length).map(row=>`| ${row.label} | ${row.http} | ${row.type} | ${row.time}ms |`),''].join('\n');
+await import('node:fs').then(fs=>{fs.mkdirSync('reports',{recursive:true});fs.writeFileSync('reports/live-reading-log-audit.md',report);});console.log(report);if(errors.length)process.exitCode=1;
