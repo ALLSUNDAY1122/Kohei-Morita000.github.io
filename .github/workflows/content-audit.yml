@@ -5,10 +5,13 @@ on:
     paths:
       - 'stories/**'
       - 'data/works.js'
+      - 'data/story-nav.js'
       - 'sitemap.xml'
       - 'scripts/audit-stories.mjs'
       - 'scripts/audit-length-categories.mjs'
+      - 'scripts/audit-story-navigation.mjs'
       - 'scripts/normalize-reading-times.mjs'
+      - 'scripts/normalize-story-navigation.mjs'
       - '.github/workflows/content-audit.yml'
   workflow_dispatch:
 
@@ -30,6 +33,9 @@ jobs:
       - name: Normalize reading-time metadata and length categories
         run: node scripts/normalize-reading-times.mjs
 
+      - name: Normalize story page navigation loaders
+        run: node scripts/normalize-story-navigation.mjs
+
       - name: Audit story metadata and cross-story repetition
         id: content_audit
         continue-on-error: true
@@ -39,6 +45,11 @@ jobs:
         id: length_audit
         continue-on-error: true
         run: node scripts/audit-length-categories.mjs
+
+      - name: Audit story page navigation
+        id: navigation_audit
+        continue-on-error: true
+        run: node scripts/audit-story-navigation.mjs
 
       - name: Upload audit reports
         if: always()
@@ -57,10 +68,10 @@ jobs:
           if git diff --cached --quiet; then
             echo "Content metadata and audit reports are unchanged."
           else
-            git commit -m "chore: normalize story metadata and update audit reports"
+            git commit -m "chore: normalize story pages and update audit reports"
             git push
           fi
 
       - name: Fail when audit errors exist
-        if: steps.content_audit.outcome == 'failure' || steps.length_audit.outcome == 'failure'
+        if: steps.content_audit.outcome == 'failure' || steps.length_audit.outcome == 'failure' || steps.navigation_audit.outcome == 'failure'
         run: exit 1
