@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'index.html'
+      - 'service-worker.js'
       - 'stories/**'
       - 'data/works.js'
       - 'data/story-taxonomy.json'
@@ -14,9 +15,12 @@ on:
       - 'scripts/normalize-static-home-rendering.mjs'
       - 'scripts/audit-work-cards.mjs'
       - 'scripts/audit-static-home-rendering.mjs'
+      - 'scripts/audit-live-work-cards.mjs'
+      - 'scripts/audit-live-static-home-rendering.mjs'
       - 'scripts/audit-related-stories.mjs'
       - 'scripts/audit-discovery.mjs'
       - '.github/workflows/work-cards-audit.yml'
+      - '.github/workflows/work-cards-live-audit.yml'
   workflow_dispatch:
 
 concurrency:
