@@ -11,7 +11,9 @@ const worksPath = path.join(root, 'data', 'works.js');
 const context = { window: {} };
 vm.runInNewContext(fs.readFileSync(worksPath, 'utf8'), context, { filename: worksPath });
 const works = context.window.KYOKAI_WORKS || [];
+const seriesInfo = context.window.KYOKAI_SERIES || {};
 const expectedUrls = new Set(works.map(work => `${base}stories/${work.file}`));
+const expectedPaths = new Set(works.map(work => `/kyokai-yawa/stories/${work.file}`));
 
 const required = ['index.html', '404.html', 'robots.txt', 'sitemap.xml', 'feed.xml', 'assets/social-card.svg', 'assets/social-card.png'];
 for (const file of required) {
@@ -42,6 +44,19 @@ if (graph) {
 if (!indexHtml.includes('type="application/rss+xml"') || !indexHtml.includes(`${base}feed.xml`)) {
   errors.push('index.htmlにRSS alternateリンクがありません');
 }
+
+const staticWorks = indexHtml.match(/<!-- STATIC_WORKS_START -->([\s\S]*?)<!-- STATIC_WORKS_END -->/)?.[1] || '';
+const staticStoryPaths = new Set([...staticWorks.matchAll(/href=["'](\/kyokai-yawa\/stories\/[^"']+)["']/g)].map(match => match[1]));
+if (!staticWorks) errors.push('index.htmlに静的作品一覧がありません');
+if (staticStoryPaths.size !== works.length) errors.push(`静的作品リンクが${works.length}件ではありません（${staticStoryPaths.size}件）`);
+for (const storyPath of expectedPaths) if (!staticStoryPaths.has(storyPath)) errors.push(`静的作品一覧に${storyPath}がありません`);
+
+const staticSeries = indexHtml.match(/<!-- STATIC_SERIES_START -->([\s\S]*?)<!-- STATIC_SERIES_END -->/)?.[1] || '';
+if (!staticSeries) errors.push('index.htmlに静的シリーズ一覧がありません');
+for (const info of Object.values(seriesInfo)) {
+  if (!new RegExp(`id=["']${info.anchor}["']`).test(staticSeries)) errors.push(`静的シリーズ一覧に#${info.anchor}がありません`);
+}
+if (/JavaScriptを有効にしてください。<\/noscript>/.test(indexHtml)) warnings.push('noscriptが作品自体を閲覧できない表現になっています');
 
 if (fs.existsSync(path.join(root, '404.html'))) {
   const html404 = fs.readFileSync(path.join(root, '404.html'), 'utf8');
@@ -99,6 +114,8 @@ const report = [
   '# 境界夜話 検索流入・404・フィード・SNS共有監査',
   '',
   `- 公開作品: ${works.length}話`,
+  `- 静的作品リンク: ${staticStoryPaths.size}件`,
+  `- 静的シリーズ棚: ${Object.keys(seriesInfo).length}件`,
   `- sitemap URL: ${works.length + 1}件`,
   `- RSS項目: ${feedItems.length}件`,
   `- SNS共有画像設定ページ: ${publicPages.length}件`,
