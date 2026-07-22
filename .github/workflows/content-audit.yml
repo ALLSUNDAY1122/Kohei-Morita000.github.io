@@ -8,6 +8,8 @@ on:
       - '404.html'
       - 'robots.txt'
       - 'feed.xml'
+      - 'assets/social-card.svg'
+      - 'assets/social-card.png'
       - 'stories/**'
       - 'data/works.js'
       - 'data/story-nav.js'
@@ -50,6 +52,16 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Render social sharing card
+        run: |
+          if [ ! -f assets/social-card.png ] || [ assets/social-card.svg -nt assets/social-card.png ]; then
+            sudo apt-get update
+            sudo apt-get install -y librsvg2-bin fonts-noto-cjk
+            rsvg-convert -w 1200 -h 630 assets/social-card.svg -o assets/social-card.png
+          else
+            echo "Social sharing card is current."
+          fi
+
       - name: Normalize public asset references
         run: node scripts/normalize-public-assets.mjs
 
@@ -68,7 +80,7 @@ jobs:
       - name: Extract completely shared story CSS
         run: node scripts/normalize-shared-story-css.mjs
 
-      - name: Generate search discovery metadata and RSS
+      - name: Generate search discovery metadata RSS and social cards
         run: node scripts/normalize-discovery.mjs
 
       - name: Audit story metadata and cross-story repetition
@@ -101,7 +113,7 @@ jobs:
         continue-on-error: true
         run: node scripts/audit-public-assets.mjs
 
-      - name: Audit search discovery 404 robots and RSS
+      - name: Audit search discovery 404 robots RSS and social sharing
         id: discovery_audit
         continue-on-error: true
         run: node scripts/audit-discovery.mjs
@@ -119,7 +131,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A .nojekyll index.html 404.html robots.txt feed.xml stories data sitemap.xml reports/*.md
+          git add -A .nojekyll index.html 404.html robots.txt feed.xml assets stories data sitemap.xml reports/*.md
           if git diff --cached --quiet; then
             echo "Content metadata and audit reports are unchanged."
           else
