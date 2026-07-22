@@ -12,7 +12,12 @@ const reportPath = path.join(reportsDir, 'indexnow-submission.md');
 const context = { window: {} };
 vm.runInNewContext(fs.readFileSync(path.join(root, 'data', 'works.js'), 'utf8'), context);
 const works = context.window.KYOKAI_WORKS || [];
-const urlList = [base, ...works.map(work => `${base}stories/${work.file}`)];
+const seriesPages = ['makabe.html', 'kurose.html', 'sakaki.html', 'kansoku.html'];
+const urlList = [
+  base,
+  ...seriesPages.map(file => `${base}series/${file}`),
+  ...works.map(work => `${base}stories/${work.file}`),
+];
 
 const writeReport = ({ status = '-', result, detail = '' }) => {
   fs.mkdirSync(reportsDir, { recursive: true });
@@ -31,6 +36,10 @@ const writeReport = ({ status = '-', result, detail = '' }) => {
 
 try {
   if (works.length !== 48) throw new Error(`作品数が48話ではありません（${works.length}話）`);
+  for (const file of seriesPages) {
+    if (!fs.existsSync(path.join(root, 'series', file))) throw new Error(`series/${file}が存在しません`);
+  }
+  if (urlList.length !== 53) throw new Error(`送信URLが53件ではありません（${urlList.length}件）`);
   if (!urlList.every(url => url.startsWith(base))) throw new Error('通知対象に/kyokai-yawa/外のURLがあります');
 
   const keyResponse = await fetch(keyLocation, { redirect: 'follow' });
