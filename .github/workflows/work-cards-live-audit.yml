@@ -1,6 +1,15 @@
 name: Live Work Cards Audit
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'data/work-cards.css'
+      - 'data/archive-tools.js'
+      - 'scripts/audit-live-work-cards.mjs'
+      - 'scripts/audit-live-static-home-rendering.mjs'
+      - '.github/workflows/work-cards-live-audit.yml'
   workflow_run:
     workflows: ['Work Cards']
     types: [completed]
@@ -15,7 +24,7 @@ permissions:
 
 jobs:
   audit-live:
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
