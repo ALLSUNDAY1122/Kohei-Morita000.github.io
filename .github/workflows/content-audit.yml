@@ -27,6 +27,8 @@ on:
       - 'data/reader-tools.js'
       - 'data/reading-status.css'
       - 'data/reading-status.js'
+      - 'data/saved-stories.css'
+      - 'data/saved-stories.js'
       - 'data/home-personalization.css'
       - 'data/home-personalization.js'
       - 'data/series-pages.css'
@@ -51,6 +53,7 @@ on:
       - 'scripts/audit-reader-experience.mjs'
       - 'scripts/audit-reading-status.mjs'
       - 'scripts/audit-home-personalization.mjs'
+      - 'scripts/audit-saved-stories.mjs'
       - 'scripts/audit-series-pages.mjs'
       - 'scripts/audit-series-work-cards.mjs'
       - 'scripts/audit-related-stories.mjs'
@@ -70,6 +73,8 @@ on:
       - 'scripts/normalize-reader-tools.mjs'
       - 'scripts/normalize-reading-status.mjs'
       - 'scripts/normalize-home-personalization.mjs'
+      - 'scripts/normalize-saved-stories.mjs'
+      - 'scripts/normalize-saved-stories-offline.mjs'
       - 'scripts/normalize-series-pages.mjs'
       - 'scripts/normalize-related-stories.mjs'
       - 'scripts/normalize-story-overviews.mjs'
@@ -157,6 +162,12 @@ jobs:
       - name: Normalize personalized return visitor entry points
         run: node scripts/normalize-home-personalization.mjs
 
+      - name: Normalize save for later assets across public pages
+        run: node scripts/normalize-saved-stories.mjs
+
+      - name: Normalize save for later offline assets
+        run: node scripts/normalize-saved-stories-offline.mjs
+
       - name: Audit story metadata and cross-story repetition
         id: content_audit
         continue-on-error: true
@@ -217,6 +228,11 @@ jobs:
         continue-on-error: true
         run: node scripts/audit-home-personalization.mjs
 
+      - name: Audit save for later management
+        id: saved_stories_audit
+        continue-on-error: true
+        run: node scripts/audit-saved-stories.mjs
+
       - name: Audit dedicated series pages and discovery links
         id: series_audit
         continue-on-error: true
@@ -270,5 +286,5 @@ jobs:
           fi
 
       - name: Fail when audit errors exist
-        if: steps.content_audit.outcome == 'failure' || steps.length_audit.outcome == 'failure' || steps.navigation_audit.outcome == 'failure' || steps.fear_audit.outcome == 'failure' || steps.html_audit.outcome == 'failure' || steps.assets_audit.outcome == 'failure' || steps.discovery_audit.outcome == 'failure' || steps.icons_audit.outcome == 'failure' || steps.offline_audit.outcome == 'failure' || steps.reader_audit.outcome == 'failure' || steps.reading_status_audit.outcome == 'failure' || steps.personalization_audit.outcome == 'failure' || steps.series_audit.outcome == 'failure' || steps.series_cards_audit.outcome == 'failure' || steps.related_audit.outcome == 'failure' || steps.overview_audit.outcome == 'failure' || steps.cards_audit.outcome == 'failure' || steps.static_render_audit.outcome == 'failure'
+        if: steps.content_audit.outcome == 'failure' || steps.length_audit.outcome == 'failure' || steps.navigation_audit.outcome == 'failure' || steps.fear_audit.outcome == 'failure' || steps.html_audit.outcome == 'failure' || steps.assets_audit.outcome == 'failure' || steps.discovery_audit.outcome == 'failure' || steps.icons_audit.outcome == 'failure' || steps.offline_audit.outcome == 'failure' || steps.reader_audit.outcome == 'failure' || steps.reading_status_audit.outcome == 'failure' || steps.personalization_audit.outcome == 'failure' || steps.saved_stories_audit.outcome == 'failure' || steps.series_audit.outcome == 'failure' || steps.series_cards_audit.outcome == 'failure' || steps.related_audit.outcome == 'failure' || steps.overview_audit.outcome == 'failure' || steps.cards_audit.outcome == 'failure' || steps.static_render_audit.outcome == 'failure'
         run: exit 1
