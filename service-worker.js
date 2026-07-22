@@ -1,4 +1,4 @@
-const VERSION = 'kyokai-yawa-v6';
+const VERSION = 'kyokai-yawa-v7';
 const STATIC_CACHE = `${VERSION}-static`;
 const PAGE_CACHE = `${VERSION}-pages`;
 const ASSET_CACHE = `${VERSION}-assets`;
@@ -13,12 +13,15 @@ const PRECACHE = [
   `${SCOPE}assets/app-icon-512.png`,
   `${SCOPE}assets/apple-touch-icon.png`,
   `${SCOPE}data/works.js`,
+  `${SCOPE}data/story-taxonomy.json`,
   `${SCOPE}data/archive-tools.js`,
   `${SCOPE}data/entry-guide.css`,
   `${SCOPE}data/reading-paths.css`,
   `${SCOPE}data/work-cards.css`,
   `${SCOPE}data/reading-status.css`,
   `${SCOPE}data/reading-status.js`,
+  `${SCOPE}data/home-personalization.css`,
+  `${SCOPE}data/home-personalization.js`,
   `${SCOPE}data/series-links.js`,
   `${SCOPE}data/series-pages.css`,
   `${SCOPE}data/series-work-cards.css`,
