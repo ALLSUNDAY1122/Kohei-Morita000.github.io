@@ -3,7 +3,7 @@ import path from 'node:path';
 
 const root=process.cwd();
 const read=file=>fs.readFileSync(path.join(root,file),'utf8');
-const workflow=read('.github/workflows/public-site-health-audit.yml');
+const workflow=read('.github/workflows/reading-public-browser-audit.yml');
 const pkg=JSON.parse(read('package.json'));
 const config=read('playwright.config.mjs');
 const tests=read('tests/site-health.spec.mjs');
@@ -12,15 +12,16 @@ const errors=[];
 const warnings=[];
 
 const requirements=[
-  ["cron: '45 21 * * *'",'毎日06:45 JSTの定期実行'],
+  ["cron: '30 21 * * *'",'毎日06:30 JSTの定期実行'],
   ['PLAYWRIGHT_BASE_URL: https://allsunday1122.github.io/kyokai-yawa/','GitHub Pages公開URL'],
   ['SITE_HEALTH_REPORT: site-public-health-audit.md','公開品質専用レポート'],
-  ['timeout-minutes: 20','実行上限'],
+  ['timeout-minutes: 25','統合ジョブ実行上限'],
   ['sleep 60','公開反映待機'],
-  ['--retries=1','一時障害の再試行'],
+  ['tests/site-health.spec.mjs --retries=1','品質試験と一時障害の再試行'],
   ['retention-days: 14','失敗資料の保存期間'],
   ['contents: write','監査レポート保存権限'],
-  ['tests/site-health.spec.mjs','実ブラウザー品質試験'],
+  ['id: health','品質試験の結果判定'],
+  ["steps.health.outcome == 'failure'",'品質試験失敗時のCI失敗'],
 ];
 for(const [fragment,label] of requirements)if(!workflow.includes(fragment))errors.push(`${label}がありません`);
 if(pkg.devDependencies?.['@axe-core/playwright']!=='4.10.2')errors.push('@axe-core/playwrightの固定バージョンがありません');
@@ -35,15 +36,16 @@ if(!workflow.includes('playwright-report')||!workflow.includes('test-results'))e
 const report=[
   '# 境界夜話 公開サイト品質定期監査 設定監査',
   '',
-  '- 定期実行: 毎日06:45 JST',
-  '- 追加実行: 公開読書監査完了後・設定変更時・手動',
+  '- 実行方式: 公開読書機能監査と同じジョブへ統合',
+  '- 定期実行: 毎日06:30 JST',
+  '- 追加実行: 主要読書ワークフロー完了後・設定変更時・手動',
   '- ブラウザー: Chromium desktop / WebKit mobile',
   '- 対象ページ: トップ・4シリーズ・単独作品・連作作品・読書記録',
   '- 実行ケース: 8ページ×2ブラウザー＝16件',
   '- アクセシビリティ: axe-core WCAG 2.1 A/AA',
   '- 実行時監視: console.error・JavaScript例外・通信失敗・HTTP 4xx/5xx',
   '- 再試行: 最大1回',
-  '- 実行上限: 20分',
+  '- 統合実行上限: 25分',
   '- 失敗資料: HTML・trace・screenshot・videoを14日保存',
   `- エラー: ${errors.length}`,
   `- 警告: ${warnings.length}`,
