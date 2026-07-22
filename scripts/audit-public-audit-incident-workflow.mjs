@@ -11,14 +11,15 @@ const workflow=fs.existsSync(workflowPath)?fs.readFileSync(workflowPath,'utf8'):
 
 const requirements=[
   ['name: Public Audit Incident Notification','ワークフロー名'],
-  ["workflows: ['Public Reading Browser Audit']",'公開監査完了トリガー'],
+  ["- 'Public Reading Browser Audit'",'読書操作監査トリガー'],
+  ["- 'Public Site Health Audit'",'サイト品質監査トリガー'],
   ['types: [completed]','完了時トリガー'],
   ['issues: write','Issue更新権限'],
   ['actions: read','Actions参照権限'],
   ['contents: write','設定監査レポート保存権限'],
   ["head_repository.full_name == github.repository",'同一リポジトリ制限'],
   ["head_branch == 'main'",'mainブランチ制限'],
-  ["const title='[監視] 境界夜話 公開サイト監査失敗'",'固定Issueタイトル'],
+  ['const title=`[監視] 境界夜話 ${run.name} 失敗`','監査別Issueタイトル'],
   ["const label='site-monitoring'",'固定監視ラベル'],
   ["run.conclusion!=='success'",'非成功時の障害判定'],
   ['github.rest.issues.create','障害Issue作成'],
@@ -33,18 +34,18 @@ for(const [fragment,label] of requirements)if(!workflow.includes(fragment))error
 
 const createCount=(workflow.match(/github\.rest\.issues\.create\(/g)||[]).length;
 if(createCount!==1)errors.push(`Issue作成処理が1件ではありません（${createCount}件）`);
-if(!workflow.includes("issues.find(issue=>!issue.pull_request&&issue.title===title)"))errors.push('同名の既存Issueを再利用する処理がありません');
+if(!workflow.includes("issues.find(issue=>!issue.pull_request&&issue.title===title)"))errors.push('同じ監査の既存Issueを再利用する処理がありません');
 if(!workflow.includes("if(incident)"))errors.push('連続失敗を既存Issueへ追記する分岐がありません');
-if(!workflow.includes("else if(incident)"))errors.push('正常復旧時だけIssueを閉じる分岐がありません');
+if(!workflow.includes("else if(incident)"))errors.push('正常復旧時だけ該当Issueを閉じる分岐がありません');
 if(workflow.includes('pull_request_target'))errors.push('pull_request_targetを使用しています');
 
 const report=[
   '# 境界夜話 公開監査障害Issue通知 設定監査',
   '',
-  '- 監視対象: Public Reading Browser Audit',
+  '- 監視対象: Public Reading Browser Audit / Public Site Health Audit',
   '- 障害判定: failure・cancelled・timed_out・skipped等の非success',
-  '- 通知方法: GitHub Issueを1件だけ作成し、連続失敗は同じIssueへ追記',
-  '- 復旧処理: 次回success時に復旧コメントを追加して自動クローズ',
+  '- 通知方法: 監査ごとにGitHub Issueを1件だけ作成し、連続失敗は同じIssueへ追記',
+  '- 復旧処理: 同じ監査の次回success時に復旧コメントを追加して自動クローズ',
   '- 実行制限: 同一リポジトリ・mainブランチのみ',
   '- ラベル: site-monitoring（未作成なら自動作成）',
   '- 外部送信: なし',
