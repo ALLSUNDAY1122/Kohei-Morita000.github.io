@@ -12,9 +12,11 @@ on:
       - 'data/saved-stories.js'
       - 'data/reading-log.css'
       - 'data/reading-log.js'
+      - 'data/reading-backup.js'
       - 'scripts/normalize-reading-log.mjs'
       - 'scripts/normalize-reading-log-offline.mjs'
       - 'scripts/audit-reading-log.mjs'
+      - 'scripts/audit-reading-backup.mjs'
       - '.github/workflows/reading-log-audit.yml'
   workflow_dispatch:
 
@@ -41,19 +43,23 @@ jobs:
         id: audit
         continue-on-error: true
         run: node scripts/audit-reading-log.mjs
-      - name: Commit generated page and report
+      - name: Audit reading record backup and restore
+        id: backup
+        continue-on-error: true
+        run: node scripts/audit-reading-backup.mjs
+      - name: Commit generated page and reports
         if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add reading-log.html index.html stories series service-worker.js reports/reading-log-audit.md
+          git add reading-log.html index.html stories series service-worker.js reports/reading-log-audit.md reports/reading-backup-audit.md
           if git diff --cached --quiet; then
-            echo "Reading log page and report are unchanged."
+            echo "Reading log page and reports are unchanged."
           else
-            git commit -m "chore: publish device-local reading log"
+            git commit -m "chore: publish reading record backup"
             git pull --rebase origin main
             git push
           fi
       - name: Fail when audit errors exist
-        if: steps.audit.outcome == 'failure'
+        if: steps.audit.outcome == 'failure' || steps.backup.outcome == 'failure'
         run: exit 1
