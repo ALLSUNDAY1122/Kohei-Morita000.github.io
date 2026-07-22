@@ -1,0 +1,98 @@
+name: Public Offline Browser Audit
+
+on:
+  schedule:
+    - cron: '0 22 * * *' # 07:00 JST
+  workflow_run:
+    workflows: ['Public Reading Browser Audit']
+    types: [completed]
+  push:
+    paths:
+      - 'service-worker.js'
+      - 'offline.html'
+      - 'manifest.webmanifest'
+      - 'assets/app-icon.svg'
+      - 'assets/app-icon-192.png'
+      - 'assets/app-icon-512.png'
+      - 'assets/apple-touch-icon.png'
+      - 'data/sw-register.js'
+      - 'data/works.js'
+      - 'data/reading-log.js'
+      - 'data/reading-backup.js'
+      - 'data/reading-status.js'
+      - 'data/saved-stories.js'
+      - 'playwright.offline.config.mjs'
+      - 'tests/offline-pwa.spec.mjs'
+      - 'scripts/offline-browser-reporter.mjs'
+      - 'scripts/audit-offline-browser-workflow.mjs'
+      - '.github/workflows/offline-public-browser-audit.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: public-offline-browser-main
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  offline-browser-audit:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      OFFLINE_BASE_URL: https://allsunday1122.github.io/kyokai-yawa/
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Audit offline browser workflow safeguards
+        id: config
+        continue-on-error: true
+        run: node scripts/audit-offline-browser-workflow.mjs
+      - name: Wait for GitHub Pages deployment
+        if: github.event_name != 'schedule'
+        run: sleep 60
+      - name: Install Playwright Test
+        run: npm install --no-audit --no-fund
+      - name: Install Chromium and WebKit
+        run: npx playwright install --with-deps chromium webkit
+      - name: Operate offline PWA behavior on the published site
+        id: tests
+        continue-on-error: true
+        run: npx playwright test --config=playwright.offline.config.mjs
+      - name: Upload offline browser report traces screenshots and videos
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: offline-public-browser-audit
+          path: |
+            reports/offline-public-browser-workflow-audit.md
+            reports/offline-public-browser-audit.md
+            playwright-report-offline
+            test-results-offline
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Commit offline browser audit reports
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add reports/offline-public-browser-workflow-audit.md
+          if [ -f reports/offline-public-browser-audit.md ]; then git add reports/offline-public-browser-audit.md; fi
+          if git diff --cached --quiet; then
+            echo "Offline browser audit reports are unchanged."
+          else
+            git commit -m "chore: record public offline PWA browser audit"
+            git pull --rebase origin main
+            git push
+          fi
+      - name: Fail when offline audit configuration is invalid
+        if: steps.config.outcome == 'failure'
+        run: exit 1
+      - name: Fail when offline browser tests fail
+        if: steps.tests.outcome == 'failure'
+        run: exit 1
