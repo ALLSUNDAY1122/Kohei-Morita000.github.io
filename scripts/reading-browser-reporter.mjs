@@ -3,11 +3,15 @@ import path from 'node:path';
 
 class ReadingBrowserReporter{
   constructor(){this.started=Date.now();this.results=new Map();}
+  printsToStdio(){return false;}
   onTestEnd(test,result){
-    const key=`${test.parent.project()?.name||'unknown'}:${test.id}`;
+    const titlePath=test.titlePath();
+    const project=titlePath[0]||'unknown';
+    const title=titlePath.slice(1).join(' › ')||test.title;
+    const key=`${project}:${test.id}`;
     this.results.set(key,{
-      project:test.parent.project()?.name||'unknown',
-      title:test.titlePath().slice(1).join(' › '),
+      project,
+      title,
       status:result.status,
       duration:result.duration,
       retry:result.retry,
