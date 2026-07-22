@@ -1,6 +1,17 @@
 name: Live Home Personalization Audit
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'data/story-taxonomy.json'
+      - 'data/reading-status.js'
+      - 'data/reader-tools.js'
+      - 'data/home-personalization.css'
+      - 'data/home-personalization.js'
+      - 'scripts/audit-live-home-personalization.mjs'
+      - '.github/workflows/home-personalization-live-audit.yml'
   workflow_run:
     workflows: ['Home Personalization']
     types: [completed]
@@ -15,7 +26,7 @@ permissions:
 
 jobs:
   audit-live:
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
