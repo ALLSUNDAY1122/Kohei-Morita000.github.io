@@ -1,26 +1,54 @@
 (()=>{
   const STORAGE_KEY='kyokai-yawa-read-stories-v1';
+  const HISTORY_KEY='kyokai-yawa-reading-history-v1';
   const idPattern=/^(?:(?:MKB|KRS|SKK)-\d{3}|KKS-S1E\d{2})$/;
   const safeStorage={
-    get(){try{return localStorage.getItem(STORAGE_KEY);}catch{return null;}},
-    set(value){try{localStorage.setItem(STORAGE_KEY,value);return true;}catch{return false;}},
+    get(key){try{return localStorage.getItem(key);}catch{return null;}},
+    set(key,value){try{localStorage.setItem(key,value);return true;}catch{return false;}},
   };
   const readSet=()=>{
     try{
-      const parsed=JSON.parse(safeStorage.get()||'[]');
+      const parsed=JSON.parse(safeStorage.get(STORAGE_KEY)||'[]');
       const values=Array.isArray(parsed)?parsed:Array.isArray(parsed?.ids)?parsed.ids:[];
       return new Set(values.filter(id=>idPattern.test(String(id))));
     }catch{return new Set();}
   };
-  const emit=(id,isRead)=>document.dispatchEvent(new CustomEvent('kyokai-reading-status-change',{detail:{id,isRead,ids:[...readSet()]}}));
-  const write=(set,id,isRead)=>{safeStorage.set(JSON.stringify([...set].sort()));emit(id,isRead);};
+  const emptyHistory=()=>({visits:{},completions:{}});
+  const readHistory=()=>{
+    try{
+      const parsed=JSON.parse(safeStorage.get(HISTORY_KEY)||'{}');
+      const history=emptyHistory();
+      for(const type of ['visits','completions']){
+        const source=parsed&&typeof parsed[type]==='object'?parsed[type]:{};
+        for(const [id,value] of Object.entries(source)){
+          const timestamp=Number(value);
+          if(idPattern.test(id)&&Number.isFinite(timestamp)&&timestamp>0)history[type][id]=timestamp;
+        }
+      }
+      return history;
+    }catch{return emptyHistory();}
+  };
+  const writeHistory=history=>safeStorage.set(HISTORY_KEY,JSON.stringify(history));
+  const updateHistory=(type,id,value=Date.now())=>{
+    if(!idPattern.test(String(id))||!['visits','completions'].includes(type))return false;
+    const history=readHistory();
+    if(value===null)delete history[type][id];
+    else history[type][id]=Number(value)||Date.now();
+    writeHistory(history);
+    return true;
+  };
+  const emit=(id,isRead)=>document.dispatchEvent(new CustomEvent('kyokai-reading-status-change',{detail:{id,isRead,ids:[...readSet()],history:readHistory()}}));
+  const write=(set,id,isRead)=>{safeStorage.set(STORAGE_KEY,JSON.stringify([...set].sort()));if(id){if(isRead)updateHistory('completions',id);else updateHistory('completions',id,null);}emit(id,isRead);};
   const api={
     key:STORAGE_KEY,
+    historyKey:HISTORY_KEY,
     getReadIds:()=>[...readSet()],
+    getHistory:()=>readHistory(),
     isRead:id=>readSet().has(String(id)),
+    recordVisit(id){id=String(id||'');if(!idPattern.test(id))return false;const saved=updateHistory('visits',id);if(saved)document.dispatchEvent(new CustomEvent('kyokai-reading-history-change',{detail:{id,history:readHistory()}}));return saved;},
     setRead(id,value=true){id=String(id||'');if(!idPattern.test(id))return false;const set=readSet();value?set.add(id):set.delete(id);write(set,id,value);return value;},
     toggle(id){return this.setRead(id,!this.isRead(id));},
-    clear(){safeStorage.set('[]');emit(null,false);},
+    clear(){safeStorage.set(STORAGE_KEY,'[]');writeHistory(emptyHistory());emit(null,false);},
     nextUnread(works,afterId=''){const list=Array.isArray(works)?works:[];const set=readSet();const start=Math.max(0,list.findIndex(work=>work.id===afterId)+1);return [...list.slice(start),...list.slice(0,start)].find(work=>!set.has(work.id))||null;},
   };
   window.KYOKAI_READING_STATUS=api;
@@ -87,6 +115,7 @@
   const refresh=()=>{ensureSeriesControls();ensureSummary();ensureStoryPanel();decorateCards();updateSummary();updateStoryPanel();};
   document.addEventListener('kyokai-story-complete',()=>{const id=currentStoryId();if(id&&!api.isRead(id))api.setRead(id,true);});
   document.addEventListener('kyokai-reading-status-change',refresh);
-  addEventListener('storage',event=>{if(event.key===STORAGE_KEY)refresh();});
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',refresh,{once:true});else refresh();
+  addEventListener('storage',event=>{if(event.key===STORAGE_KEY||event.key===HISTORY_KEY)refresh();});
+  const start=()=>{const id=currentStoryId();if(id)api.recordVisit(id);refresh();};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
