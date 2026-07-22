@@ -21,6 +21,7 @@ const bytes=value=>Buffer.byteLength(value,'utf8');
 const kib=value=>(value/1024).toFixed(1);
 const hash=value=>crypto.createHash('sha256').update(value).digest('hex').slice(0,12);
 const localPath=url=>{
+  if(url.includes('${'))return null;
   const clean=url.split(/[?#]/)[0];
   if(!clean.startsWith('/kyokai-yawa/'))return null;
   const sub=clean.slice('/kyokai-yawa/'.length);
