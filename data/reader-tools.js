@@ -66,22 +66,36 @@
   returnTop.textContent = '本文の先頭へ戻る';
   article.after(returnTop);
 
-  const savedPosition = Number.parseFloat(safeStorage.get(positionKey) || '');
-  if (Number.isFinite(savedPosition) && savedPosition >= 0.08 && savedPosition < 0.93) {
-    resumeButton.hidden = false;
-    resumeButton.textContent = `前回の${Math.round(savedPosition * 100)}%へ`;
-    resumeButton.addEventListener('click', () => {
-      const bounds = getBounds();
-      scrollTo({ top: bounds.start + savedPosition * bounds.range, behavior: reducedMotion ? 'auto' : 'smooth' });
-      resumeButton.hidden = true;
-    }, { once: true });
-  }
-
   function getBounds() {
     const top = article.getBoundingClientRect().top + scrollY;
     const start = Math.max(0, top - innerHeight * 0.18);
     const end = Math.max(start + 1, top + article.offsetHeight - innerHeight * 0.62);
     return { start, range: end - start };
+  }
+
+  const savedPosition = Number.parseFloat(safeStorage.get(positionKey) || '');
+  const hasSavedPosition = Number.isFinite(savedPosition) && savedPosition >= 0.08 && savedPosition < 0.93;
+  const resumeToSavedPosition = (behavior = reducedMotion ? 'auto' : 'smooth') => {
+    if (!hasSavedPosition) return;
+    const bounds = getBounds();
+    scrollTo({ top: bounds.start + savedPosition * bounds.range, behavior });
+    resumeButton.hidden = true;
+  };
+  if (hasSavedPosition) {
+    resumeButton.hidden = false;
+    resumeButton.textContent = `前回の${Math.round(savedPosition * 100)}%へ`;
+    resumeButton.addEventListener('click', () => resumeToSavedPosition(), { once: true });
+    const params = new URLSearchParams(location.search);
+    if (params.get('resume') === '1') {
+      setTimeout(() => {
+        resumeToSavedPosition('auto');
+        if (history.replaceState) {
+          const next = new URL(location.href);
+          next.searchParams.delete('resume');
+          history.replaceState(null, '', `${next.pathname}${next.search}${next.hash}`);
+        }
+      }, 80);
+    }
   }
 
   let currentRatio = 0;
