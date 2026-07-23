@@ -8,6 +8,7 @@ on:
       - 'Reading Backup Browser Audit'
       - 'Reading Log Audit'
       - 'Content Audit'
+      - 'Public Home Personalization Browser Audit'
     types: [completed]
   push:
     paths:
