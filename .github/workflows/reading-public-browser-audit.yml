@@ -20,6 +20,7 @@ on:
       - 'data/series-archive-tools.js'
       - 'data/home-personalization.js'
       - 'data/accessibility-contrast.css'
+      - 'data/reading-status.css'
       - 'data/reading-log.css'
       - 'data/reading-log.js'
       - 'data/series-work-cards.css'
