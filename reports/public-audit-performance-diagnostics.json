@@ -1,0 +1,19 @@
+{
+  "schema": "kyokai-public-audit-performance-diagnostics-v1",
+  "generatedAt": "2026-07-23T01:04:43.707Z",
+  "performanceGeneratedAt": "2026-07-23T01:04:43.504Z",
+  "breached": false,
+  "selfTest": false,
+  "limits": {
+    "commits": 20,
+    "files": 40
+  },
+  "totals": {
+    "windows": 0,
+    "commits": 0,
+    "files": 0,
+    "siteFiles": 0,
+    "monitoringFiles": 0
+  },
+  "windows": []
+}
