@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import vm from 'node:vm';
 
 const root=process.cwd();
 const read=file=>fs.readFileSync(path.join(root,file),'utf8');
@@ -8,6 +9,9 @@ const pkg=JSON.parse(read('package.json'));
 const config=read('playwright.config.mjs');
 const tests=read('tests/site-health.spec.mjs');
 const reporter=read('scripts/site-health-reporter.mjs');
+const worksContext={window:{}};
+vm.runInNewContext(read('data/works.js'),worksContext);
+const works=Array.isArray(worksContext.window.KYOKAI_WORKS)?worksContext.window.KYOKAI_WORKS:[];
 const errors=[];
 const warnings=[];
 
@@ -15,7 +19,7 @@ const requirements=[
   ["cron: '30 21 * * *'",'毎日06:30 JSTの定期実行'],
   ['PLAYWRIGHT_BASE_URL: https://allsunday1122.github.io/kyokai-yawa/','GitHub Pages公開URL'],
   ['SITE_HEALTH_REPORT: site-public-health-audit.md','公開品質専用レポート'],
-  ['timeout-minutes: 20','統合ジョブ実行上限'],
+  ['timeout-minutes: 30','統合ジョブ実行上限'],
   ['sleep 60','公開反映待機'],
   ['tests/site-health.spec.mjs --retries=1','品質試験と一時障害の再試行'],
   ['retention-days: 14','失敗資料の保存期間'],
@@ -27,9 +31,11 @@ for(const [fragment,label] of requirements)if(!workflow.includes(fragment))error
 if(pkg.devDependencies?.['@axe-core/playwright']!=='4.10.2')errors.push('@axe-core/playwrightの固定バージョンがありません');
 if(!config.includes('siteHealthMode')||!config.includes('site-health-reporter.mjs'))errors.push('Playwright設定に品質監査レポーター切替がありません');
 for(const token of ['wcag2a','wcag2aa','wcag21a','wcag21aa','pageerror','requestfailed','consoleErrors','badResponses'])if(!tests.includes(token))errors.push(`品質試験に必要な監視がありません: ${token}`);
-const targetLabels=['トップ','真壁夜話','黒瀬蒐集録','榊怪異相談所','境界観測記','単独作品','連作作品','読書記録'];
-for(const token of targetLabels)if(!tests.includes(token))errors.push(`代表ページが品質試験にありません: ${token}`);
-if(targetLabels.length*2!==16)errors.push('品質試験の想定ケース数が16件ではありません');
+for(const token of ["data/works.js","works.length!==48","targets.length!==54","new Set(targets.map","storyTargets"])if(!tests.includes(token))errors.push(`全公開ページ監査に必要な処理がありません: ${token}`);
+for(const token of ['対象ページ: ${pages.length}/54','実行ケース: ${rows.length}/108'])if(!reporter.includes(token))errors.push(`品質監査レポートに全件集計がありません: ${token}`);
+if(works.length!==48)errors.push(`公開作品が48話ではありません（${works.length}話）`);
+const files=works.map(work=>work.file);
+if(new Set(files).size!==works.length)errors.push('公開作品ファイル名に重複があります');
 if(!reporter.includes('アクセシビリティ・実行時品質監査'))errors.push('品質監査レポート見出しがありません');
 if(!workflow.includes('playwright-report')||!workflow.includes('test-results'))errors.push('失敗時のトレース・画面資料が保存対象にありません');
 
@@ -40,12 +46,13 @@ const report=[
   '- 定期実行: 毎日06:30 JST',
   '- 追加実行: 主要読書ワークフロー完了後・設定変更時・手動',
   '- ブラウザー: Chromium desktop / WebKit mobile',
-  '- 対象ページ: トップ・4シリーズ・単独作品・連作作品・読書記録',
-  '- 実行ケース: 8ページ×2ブラウザー＝16件',
+  '- 対象ページ: トップ1・シリーズ4・公開作品48・読書記録1＝54ページ',
+  '- 実行ケース: 54ページ×2ブラウザー＝108件',
+  '- 作品追加対応: data/works.jsから監査対象を自動生成',
   '- アクセシビリティ: axe-core WCAG 2.1 A/AA',
   '- 実行時監視: console.error・JavaScript例外・通信失敗・HTTP 4xx/5xx',
   '- 再試行: 最大1回',
-  '- 統合実行上限: 20分',
+  '- 統合実行上限: 30分',
   '- 失敗資料: HTML・trace・screenshot・videoを14日保存',
   `- エラー: ${errors.length}`,
   `- 警告: ${warnings.length}`,
