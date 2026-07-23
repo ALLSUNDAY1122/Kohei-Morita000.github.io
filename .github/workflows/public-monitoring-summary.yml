@@ -1,0 +1,64 @@
+name: Public Monitoring Summary
+
+on:
+  workflow_run:
+    workflows:
+      - 'Public Reading Browser Audit'
+      - 'Public Offline Browser Audit'
+      - 'Public Audit Incident Notification'
+    types: [completed]
+  schedule:
+    - cron: '30 22 * * *' # 07:30 JST
+  push:
+    paths:
+      - 'scripts/update-public-monitoring-summary.mjs'
+      - 'scripts/audit-public-monitoring-summary.mjs'
+      - '.github/workflows/public-monitoring-summary.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: public-monitoring-summary-main
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  summarize:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.head_branch == 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Pull latest audit reports
+        run: git pull --rebase origin main
+      - name: Update monitoring history and summary
+        id: summary
+        continue-on-error: true
+        run: node scripts/update-public-monitoring-summary.mjs
+      - name: Audit monitoring summary structure
+        id: audit
+        continue-on-error: true
+        run: node scripts/audit-public-monitoring-summary.mjs
+      - name: Commit monitoring history
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add reports/public-monitoring-history.json reports/public-monitoring-summary.md reports/public-monitoring-summary-audit.md
+          if git diff --cached --quiet; then
+            echo "Monitoring summary is unchanged."
+          else
+            git commit -m "chore: update public monitoring summary"
+            git pull --rebase origin main
+            git push
+          fi
+      - name: Fail when latest monitoring status is not healthy
+        if: steps.summary.outcome == 'failure' || steps.audit.outcome == 'failure'
+        run: exit 1
