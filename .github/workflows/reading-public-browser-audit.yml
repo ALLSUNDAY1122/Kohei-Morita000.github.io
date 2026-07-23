@@ -16,6 +16,7 @@ on:
       - 'playwright.config.mjs'
       - 'index.html'
       - 'reading-log.html'
+      - 'status.html'
       - 'series/*.html'
       - 'data/archive-tools.js'
       - 'data/series-archive-tools.js'
@@ -25,18 +26,23 @@ on:
       - 'data/reading-log.css'
       - 'data/reading-log.js'
       - 'data/series-work-cards.css'
+      - 'data/status.css'
+      - 'data/status.js'
       - 'data/works.js'
       - 'tests/reading-backup.spec.mjs'
       - 'tests/reading-state.spec.mjs'
       - 'tests/reading-discovery.spec.mjs'
       - 'tests/reading-log-management.spec.mjs'
+      - 'tests/status-page.spec.mjs'
       - 'tests/site-health.spec.mjs'
       - 'scripts/normalize-reading-log.mjs'
+      - 'scripts/normalize-status-page.mjs'
       - 'scripts/normalize-series-pages.mjs'
       - 'scripts/normalize-accessibility-contrast.mjs'
       - 'scripts/reading-browser-reporter.mjs'
       - 'scripts/site-health-reporter.mjs'
       - 'scripts/audit-reading-public-browser-workflow.mjs'
+      - 'scripts/audit-status-page.mjs'
       - 'scripts/audit-site-health-workflow.mjs'
       - 'scripts/audit-accessibility-contrast-assets.mjs'
       - 'scripts/public-audit-incident.mjs'
@@ -82,10 +88,10 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Install Chromium and WebKit
         run: npx playwright install --with-deps chromium webkit
-      - name: Operate reading features on the published site
+      - name: Operate reading and monitoring features on the published site
         id: tests
         continue-on-error: true
-        run: npx playwright test tests/reading-backup.spec.mjs tests/reading-state.spec.mjs tests/reading-discovery.spec.mjs tests/reading-log-management.spec.mjs --retries=2
+        run: npx playwright test tests/reading-backup.spec.mjs tests/reading-state.spec.mjs tests/reading-discovery.spec.mjs tests/reading-log-management.spec.mjs tests/status-page.spec.mjs --retries=2
       - name: Audit all public pages for accessibility runtime errors and failed requests
         id: health
         continue-on-error: true
