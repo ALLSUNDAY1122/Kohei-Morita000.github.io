@@ -24,7 +24,7 @@ const page=`<!doctype html>
 </head>
 <body class="reading-log-page">
 <a class="skip" href="#main">本文へ移動</a>
-<header class="site-header"><nav class="nav" aria-label="主要メニュー"><a class="brand" href="/kyokai-yawa/"><strong>境界夜話</strong><span>怪談アーカイブ</span></a><div class="nav-links"><a href="/kyokai-yawa/">トップ</a><a href="/kyokai-yawa/#works">作品</a><a href="/kyokai-yawa/#series">シリーズ</a><a aria-current="page" href="/kyokai-yawa/reading-log.html">読書記録</a></div></nav></header>
+<header class="site-header"><nav class="nav" aria-label="主要メニュー"><a class="brand" href="/kyokai-yawa/"><strong>境界夜話</strong><span>怪談アーカイブ</span></a><div class="nav-links"><a href="/kyokai-yawa/">トップ</a><a href="/kyokai-yawa/#works">作品</a><a href="/kyokai-yawa/#series">シリーズ</a><a aria-current="page" href="/kyokai-yawa/reading-log.html">読書記録</a><a href="/kyokai-yawa/status.html">運用状況</a></div></nav></header>
 <main id="main">
 <section class="hero" aria-labelledby="reading-log-title"><div><p class="eyebrow">YOUR READING LOG</p><h1 id="reading-log-title">読書記録</h1><p class="lead">読了済み、途中まで読んだ作品、あとで読むを一か所で確認します。各作品の状態はこの端末のブラウザー内だけに保存されます。</p></div><p class="local-note">このページの内容は端末ごとに異なります。アカウント同期や外部送信は行いません。ブラウザーの保存データを削除すると記録も消去されます。</p></section>
 <section class="summary-grid" aria-label="読書状況"><article class="summary-card"><small>読了済み</small><strong data-count-read>0話</strong></article><article class="summary-card"><small>未読</small><strong data-count-unread>48話</strong></article><article class="summary-card"><small>あとで読む</small><strong data-count-saved>0話</strong></article><article class="summary-card"><small>途中まで</small><strong data-count-progress>0話</strong></article><div class="summary-progress" aria-hidden="true"><span data-summary-bar style="transform:scaleX(0)"></span></div></section>
@@ -54,7 +54,7 @@ const page=`<!doctype html>
 `;
 fs.writeFileSync(path.join(root,'reading-log.html'),page);
 
-const navBlock='<!-- READING_LOG_NAV_START --><a href="/kyokai-yawa/reading-log.html">読書記録</a><!-- READING_LOG_NAV_END -->';
+const navBlock='<!-- READING_LOG_NAV_START --><a href="/kyokai-yawa/reading-log.html">読書記録</a><a href="/kyokai-yawa/status.html">運用状況</a><!-- READING_LOG_NAV_END -->';
 const navPattern=/\s*<!-- READING_LOG_NAV_START -->[\s\S]*?<!-- READING_LOG_NAV_END -->\s*/g;
 const updateIndex=()=>{
   const file=path.join(root,'index.html');let html=fs.readFileSync(file,'utf8').replace(navPattern,'');
@@ -71,4 +71,4 @@ const updateSecondary=file=>{
 updateIndex();
 for(const file of ['makabe.html','kurose.html','sakaki.html','kansoku.html'])updateSecondary(path.join(root,'series',file));
 for(const work of works)updateSecondary(path.join(root,'stories',work.file));
-console.log(`# 読書記録ページ正規化\n\n- 読書記録ページ: 1\n- 公開作品: ${works.length}\n- ナビゲーション反映: ${1+4+works.length}ページ\n- 検索・状態絞り込み・並べ替え: 対応\n- JSONバックアップ・内容確認・復元: 対応\n- 保存方式: ブラウザー端末内localStorage\n`);
+console.log(`# 読書記録ページ正規化\n\n- 読書記録ページ: 1\n- 公開作品: ${works.length}\n- ナビゲーション反映: ${1+4+works.length}ページ\n- 運用状況導線: 対応\n- 検索・状態絞り込み・並べ替え: 対応\n- JSONバックアップ・内容確認・復元: 対応\n- 保存方式: ブラウザー端末内localStorage\n`);
