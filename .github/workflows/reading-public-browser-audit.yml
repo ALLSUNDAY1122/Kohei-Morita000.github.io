@@ -13,13 +13,18 @@ on:
     paths:
       - 'package.json'
       - 'playwright.config.mjs'
+      - 'index.html'
       - 'reading-log.html'
       - 'series/*.html'
+      - 'data/archive-tools.js'
+      - 'data/series-archive-tools.js'
+      - 'data/home-personalization.js'
       - 'data/accessibility-contrast.css'
       - 'data/reading-log.css'
       - 'data/series-work-cards.css'
       - 'tests/reading-backup.spec.mjs'
       - 'tests/reading-state.spec.mjs'
+      - 'tests/reading-discovery.spec.mjs'
       - 'tests/site-health.spec.mjs'
       - 'scripts/normalize-reading-log.mjs'
       - 'scripts/normalize-series-pages.mjs'
@@ -70,7 +75,7 @@ jobs:
       - name: Operate reading features on the published site
         id: tests
         continue-on-error: true
-        run: npx playwright test tests/reading-backup.spec.mjs tests/reading-state.spec.mjs --retries=2
+        run: npx playwright test tests/reading-backup.spec.mjs tests/reading-state.spec.mjs tests/reading-discovery.spec.mjs --retries=2
       - name: Audit accessibility runtime errors and failed requests
         id: health
         continue-on-error: true
