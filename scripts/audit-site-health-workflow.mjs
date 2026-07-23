@@ -26,12 +26,13 @@ const requirements=[
   ['contents: write','監査レポート保存権限'],
   ['id: health','品質試験の結果判定'],
   ["steps.health.outcome == 'failure'",'品質試験失敗時のCI失敗'],
+  ["- 'data/works.js'",'作品データ変更時の監査起動'],
 ];
 for(const [fragment,label] of requirements)if(!workflow.includes(fragment))errors.push(`${label}がありません`);
 if(pkg.devDependencies?.['@axe-core/playwright']!=='4.10.2')errors.push('@axe-core/playwrightの固定バージョンがありません');
 if(!config.includes('siteHealthMode')||!config.includes('site-health-reporter.mjs'))errors.push('Playwright設定に品質監査レポーター切替がありません');
 for(const token of ['wcag2a','wcag2aa','wcag21a','wcag21aa','pageerror','requestfailed','consoleErrors','badResponses'])if(!tests.includes(token))errors.push(`品質試験に必要な監視がありません: ${token}`);
-for(const token of ["data/works.js","works.length!==48","targets.length!==54","new Set(targets.map","storyTargets"])if(!tests.includes(token))errors.push(`全公開ページ監査に必要な処理がありません: ${token}`);
+for(const token of ["path.join(root,'data','works.js')","works.length!==48","targets.length!==54","new Set(targets.map","storyTargets"])if(!tests.includes(token))errors.push(`全公開ページ監査に必要な処理がありません: ${token}`);
 for(const token of ['対象ページ: ${pages.length}/54','実行ケース: ${rows.length}/108'])if(!reporter.includes(token))errors.push(`品質監査レポートに全件集計がありません: ${token}`);
 if(works.length!==48)errors.push(`公開作品が48話ではありません（${works.length}話）`);
 const files=works.map(work=>work.file);
