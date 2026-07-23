@@ -10,6 +10,8 @@ const stateTests=read('tests/reading-state.spec.mjs');
 const discoveryTests=read('tests/reading-discovery.spec.mjs');
 const logTests=read('tests/reading-log-management.spec.mjs');
 const reporter=read('scripts/reading-browser-reporter.mjs');
+const incident=read('scripts/public-audit-incident.mjs');
+const incidentTests=read('scripts/test-public-audit-incident.mjs');
 const errors=[];
 const warnings=[];
 
@@ -26,11 +28,16 @@ const requiredWorkflow=[
   ['--retries=2','公開試験の再試行'],
   ['retention-days: 14','失敗資料の保存期間'],
   ['contents: write','監査レポート保存権限'],
+  ['issues: write','障害Issue管理権限'],
+  ['node scripts/test-public-audit-incident.mjs','障害Issueライフサイクル試験'],
+  ['actions/github-script@v7','GitHub Issue操作'],
+  ['managePublicAuditIncident','障害Issue管理処理'],
+  ['AUDIT_FAILED:','監査失敗判定の受け渡し'],
 ];
 for(const [token,label] of requiredWorkflow)if(!workflow.includes(token))errors.push(`${label}がありません`);
 for(const workflowName of ['Reading Backup Browser Audit','Reading Log Audit','Content Audit'])if(!workflow.includes(`- '${workflowName}'`))errors.push(`${workflowName}完了後の起動設定がありません`);
-for(const asset of ['reports/reading-public-browser-audit.md','playwright-report','test-results'])if(!workflow.includes(asset))errors.push(`監査成果物がありません: ${asset}`);
-for(const watched of ['index.html','reading-log.html','series/*.html','data/archive-tools.js','data/series-archive-tools.js','data/home-personalization.js','data/reading-log.js','tests/reading-discovery.spec.mjs','tests/reading-log-management.spec.mjs'])if(!workflow.includes(`- '${watched}'`))errors.push(`読書導線監査の変更監視がありません: ${watched}`);
+for(const asset of ['reports/reading-public-browser-audit.md','reports/public-audit-incident-audit.md','playwright-report','test-results'])if(!workflow.includes(asset))errors.push(`監査成果物がありません: ${asset}`);
+for(const watched of ['index.html','reading-log.html','series/*.html','data/archive-tools.js','data/series-archive-tools.js','data/home-personalization.js','data/reading-log.js','tests/reading-discovery.spec.mjs','tests/reading-log-management.spec.mjs','scripts/public-audit-incident.mjs','scripts/test-public-audit-incident.mjs'])if(!workflow.includes(`- '${watched}'`))errors.push(`読書導線監査の変更監視がありません: ${watched}`);
 if(!config.includes("const publicBaseURL=process.env.PLAYWRIGHT_BASE_URL?.trim()"))errors.push('公開URLへの切替処理がありません');
 if(!config.includes('const webServer=publicBaseURL?undefined'))errors.push('公開試験時にローカルサーバーを無効化していません');
 for(const browser of ["name:'chromium-desktop'","name:'webkit-mobile'"])if(!config.includes(browser))errors.push(`ブラウザー設定がありません: ${browser}`);
@@ -43,6 +50,8 @@ if(!reporter.includes('読書記録検索/状態管理/途中再開'))errors.pus
 if(!reporter.includes('読了切替・あとで読む・途中位置保存/再開・自動読了・次の未読'))errors.push('通常読書操作が監査レポートの対象に記載されていません');
 if(!reporter.includes("process.env.READING_BROWSER_REPORT"))errors.push('公開専用レポート名への切替がありません');
 if(!reporter.includes("process.env.PLAYWRIGHT_BASE_URL"))errors.push('監査対象URLのレポート記録がありません');
+for(const token of ['public-site-incident','[監査障害] 境界夜話 公開サイト','createLabel','listForRepo','createComment','state_reason:\'completed\''])if(!incident.includes(token))errors.push(`障害Issue処理がありません: ${token}`);
+for(const token of ["action,'created'","action,'commented'","action,'closed'","action,'none'"])if(!incidentTests.includes(token))errors.push(`障害Issue試験がありません: ${token}`);
 if(workflow.includes('schedule:')&&!workflow.includes("cron: '30 21 * * *'"))warnings.push('定期実行時刻が06:30 JSTから変更されています');
 
 const report=[
@@ -56,6 +65,8 @@ const report=[
   '- 再試行: 最大2回',
   '- 実行上限: 30分',
   '- 失敗資料: HTML・trace・screenshot・videoを14日保存',
+  '- 障害通知: 初回失敗でIssue作成、連続失敗は追記、復旧時に自動クローズ',
+  '- 重複防止: 固定タイトル・専用ラベル・本文マーカー',
   `- エラー: ${errors.length}`,
   `- 警告: ${warnings.length}`,
   '',
