@@ -1,16 +1,28 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import fs from 'node:fs';
+import path from 'node:path';
+import vm from 'node:vm';
 
-const targets=[
+const root=process.cwd();
+const worksContext={window:{}};
+const worksPath=path.join(root,'data','works.js');
+vm.runInNewContext(fs.readFileSync(worksPath,'utf8'),worksContext,{filename:worksPath});
+const works=Array.isArray(worksContext.window.KYOKAI_WORKS)?worksContext.window.KYOKAI_WORKS:[];
+if(works.length!==48)throw new Error(`公開作品が48話ではありません（${works.length}話）`);
+
+const fixedTargets=[
   ['トップ',''],
   ['真壁夜話','series/makabe.html'],
   ['黒瀬蒐集録','series/kurose.html'],
-  ['榊怪異相談所','series/sakaki.html'],
+  ['榊家異聞','series/sakaki.html'],
   ['境界観測記','series/kansoku.html'],
-  ['単独作品','stories/mkb-001-taikin-kiroku-2514.html'],
-  ['連作作品','stories/kks-s1e01-sakaime-no-heya.html'],
   ['読書記録','reading-log.html'],
 ];
+const storyTargets=works.map(work=>[`${work.id} ${work.title}`,`stories/${work.file}`]);
+const targets=[...fixedTargets,...storyTargets];
+if(targets.length!==54)throw new Error(`公開監査対象が54ページではありません（${targets.length}ページ）`);
+if(new Set(targets.map(([,url])=>url)).size!==54)throw new Error('公開監査対象URLに重複があります');
 
 const unique=values=>[...new Set(values.filter(Boolean))];
 const compactViolation=violation=>({
@@ -44,7 +56,7 @@ for(const [label,url] of targets){
     expect(response?.status()||0).toBeLessThan(400);
     await expect(page.locator('main')).toBeVisible();
     await expect(page.locator('h1')).toHaveCount(1);
-    await page.waitForTimeout(700);
+    await page.waitForTimeout(500);
 
     const axe=await new AxeBuilder({page})
       .withTags(['wcag2a','wcag2aa','wcag21a','wcag21aa'])
